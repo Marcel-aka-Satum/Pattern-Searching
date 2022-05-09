@@ -6,4 +6,8 @@ set(CMAKE_CXX_STANDARD 14)
 include_directories(.)
 
 add_executable(Pattern-Searching
-        main.cpp)
+        main.cpp
+        DFA.cpp
+        DFA.h
+        NFA.cpp
+        NFA.h)
