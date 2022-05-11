@@ -10,4 +10,8 @@ add_executable(Pattern-Searching
         DFA.cpp
         DFA.h
         NFA.cpp
-        NFA.h)
+        NFA.h
+        ENFA.cpp
+        ENFA.h
+        RE.cpp
+        RE.h)
