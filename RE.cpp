@@ -1,7 +1,3 @@
-//
-// Created by aaditya on 11.05.22.
-//
-
 #include "RE.h"
 #include <fstream>
 #include <set>

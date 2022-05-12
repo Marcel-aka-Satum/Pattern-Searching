@@ -14,4 +14,6 @@ add_executable(Pattern-Searching
         ENFA.cpp
         ENFA.h
         RE.cpp
-        RE.h)
+        RE.h
+        PatternSearching.cpp
+        PatternSearching.h)

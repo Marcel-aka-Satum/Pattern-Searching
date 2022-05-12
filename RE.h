@@ -1,7 +1,3 @@
-//
-// Created by aaditya on 11.05.22.
-//
-
 #ifndef PATTERN_SEARCHING_RE_H
 #define PATTERN_SEARCHING_RE_H
 #include "iostream"

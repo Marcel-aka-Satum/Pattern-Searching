@@ -1,31 +1,37 @@
-//
-// Created by aaditya on 23.04.22.
-//
-
 #ifndef SUBSET_CONSTRUCTION_DFA_H
 #define SUBSET_CONSTRUCTION_DFA_H
-#include <string>
-#include "iomanip"
 #include <iostream>
+#include <fstream>
+#include <iomanip>
 #include "json.hpp"
-#include <set>
-#include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 using json = nlohmann::json;
 using namespace std;
 class DFA {
 private:
-    string filename;
     json j;
     json dfa1;
     json dfa2;
-    bool doorsnede;
+    bool unieOrDoorsnede;
 public:
-
-    DFA(string p);
-
+    //common functions
+    DFA(const string& dfa);
     void print();
+    bool accepts(const string& s);
 
+    //functions for product automaat
+
+    DFA(json v, bool test);
+    DFA(const DFA& a, const DFA& b, bool c);
+    void doUnie();
+    void doDoorsnede();
+
+    //functions for mssc
+
+    //DFA(json v);
 };
 
 #endif //SUBSET_CONSTRUCTION_DFA_H

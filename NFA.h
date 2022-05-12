@@ -1,7 +1,3 @@
-//
-// Created by aaditya on 12.04.22.
-//
-
 #ifndef SUBSET_CONSTRUCTION_NFA_H
 #define SUBSET_CONSTRUCTION_NFA_H
 #include "iostream"
