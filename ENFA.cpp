@@ -1,5 +1,6 @@
 #include "ENFA.h"
 #include "json.hpp"
+#include "DFA.h"
 #include "fstream"
 #include "map"
 
@@ -172,215 +173,89 @@ void ENFA::print() {
 }
 
 DFA ENFA::toDFA() {
-    json l;
-    l["type"] = "DFA";
-    l["alphabet"] = j["alphabet"];
-    string currentState = "{";
-    vector<json> states;
-    vector<json> transitions;
-    string startingState;
-    string acceptingStates;
-    bool startingAcceptBool;
+    vector<string> startState;
+    dfa = {
+            {"type",     "DFA"},
+            {"alphabet", j["alphabet"]}
+    };
 
-    // hier kijk ik wat mijn starting state is en zet ik dat state true en geef dat door aan de var currentState
-    for(int i = 0; i < j["states"].size(); i++){
-        if (j["states"][i]["starting"] == true){
-            currentState = j["states"][i]["name"];
-            currentState += "}";
-            startingState = j["states"][i]["name"];
-            startingAcceptBool = j["states"][i]["accepting"];
-        }
-        if(j["states"][i]["accepting"] == true){
-            acceptingStates += j["states"][i]["name"];
+    for (int i = 0; i < j["states"].size(); i++) {
+        if (j["states"][i]["starting"] == true) {
+            startState = {j["states"][i]["name"]};
+            startState = tryEpsilon(startState);
+            dfa["states"] = {"", ""};
         }
     }
-    queue<string> epsilon;
-    epsilon.push(startingState);
-    while (!epsilon.empty()){
-        string test = epsilon.front();
-        epsilon.pop();
-        for (int k = 0; k < j["transitions"].size(); k++) {
-            if ((j["transitions"][k]["from"] == test) and (j["transitions"][k]["input"] == "*")) {
-                bool found = false;
-                for (int m = 0; m < currentState.size(); ++m) {
-                    string ok(1,currentState[m]);
-                    if (ok == j["transitions"][k]["to"]){
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    currentState += j["transitions"][k]["to"];
-                    startingState += ",";
-                    startingState += j["transitions"][k]["to"];
-                    currentState += ",";
-                    epsilon.push(j["transitions"][k]["to"]);
-                }
+    dfa["transitions"] = {"", ""};
+    subsetConstruction(startState);
 
-            }
+    for (auto const &elem : allStates) {
+        if (elem == startState)
+            addState(vecToString(elem), true, accept(elem));
+        else
+            addState(vecToString(elem), false, accept(elem));
+    }
+
+    //verwijder de blank spaces
+    dfa["states"].erase(dfa["states"].begin());
+    dfa["states"].erase(dfa["states"].begin());
+    dfa["transitions"].erase(dfa["transitions"].begin());
+    dfa["transitions"].erase(dfa["transitions"].begin());
+
+    ofstream file("dfa.json");
+    file << dfa;
+    file.close();
+    DFA dfaa("dfa.json");
+    return dfaa;
+}
+void ENFA::subsetConstruction(vector<string> const &state) {
+    vector<vector<string>> states;
+
+    if (allStates.find(state) != allStates.end())
+        return;
+    allStates.insert(state);
+
+    for (auto const &alph : dfa["alphabet"]) {
+        vector<string> new_state = tryEpsilon(findTransition(state, alph));
+        states.push_back(new_state);
+        addTransition(vecToString(state), vecToString(new_state), alph);
+    }
+
+    for (auto const &s : states) {
+        subsetConstruction(s);
+    }
+}
+string ENFA::vecToString(vector<string> new_state) {
+    if (new_state.empty())
+        return "{}";
+
+    string name = "{" + new_state[0];
+    for (int i = 1; i < new_state.size(); i++) {
+        name += ",";
+        name += new_state[i];
+    }
+    name += "}";
+    return name;
+}
+vector<string> ENFA::findTransition(vector<string> state, string input) {
+    vector<string> new_state;
+    for (int i = 0; i < j["transitions"].size(); i++) {
+        if (count(state.begin(), state.end(), j["transitions"][i]["from"]) &&
+            j["transitions"][i]["input"] == input) {
+            new_state.push_back(j["transitions"][i]["to"]);
         }
     }
-    queue<string> notDoneStates;
-    notDoneStates.push(currentState);
-    vector<string> doneStates;
-    json r;
-    string tempS = "{" + startingState + "}";;
-    r["name"] = tempS;
-    r["starting"] = true;
-    r["accepting"] = startingAcceptBool;
-    states.push_back(r);
-    while (!notDoneStates.empty()){
-        currentState = notDoneStates.front();
-        notDoneStates.pop();
-        vector<string> newStates;
-        bool starting = false;
-        bool accepting = false;
-        for (int i = 0; i < j["alphabet"].size(); ++i) {
-            string inp = j["alphabet"][i];
-            string newState = "{";
-            for (int i = 0; i < currentState.size(); ++i) {
-                if (currentState[i] != '{' and currentState[i] != '}') {
-                    for (int k = 0; k < j["transitions"].size(); k++) {
-                        string state(1, currentState[i]);
-                        if ((j["transitions"][k]["from"] == state) and (j["transitions"][k]["input"] == inp)) {
-                            newState += j["transitions"][k]["to"];
-                            newState += ",";
-                        }
-                    }
-                }
-            }
-            unordered_set<char> log;
-            newState.erase(remove_if(newState.begin(), newState.end(), [&] (char const c) { return !(log.insert(c).second); }), newState.end());
-            queue<string> epsilon;
-
-            for (int k = 0; k < newState.size(); ++k) {
-                string v(1,newState[k]);
-                if (v != "{")
-                    epsilon.push(v);
-            }
-
-            while (!epsilon.empty()){
-                string test = epsilon.front();
-                epsilon.pop();
-                for (int k = 0; k < j["transitions"].size(); k++) {
-                    if ((j["transitions"][k]["from"] == test) and (j["transitions"][k]["input"] == "*")) {
-                        bool found = false;
-                        for (int m = 0; m < newState.size(); ++m) {
-                            string ok(1,newState[m]);
-                            if (ok == j["transitions"][k]["to"]){
-                                found = true;
-                                break;
-                            }
-                        }
-                        if (!found) {
-                            newState += j["transitions"][k]["to"];
-                            newState += ",";
-                            epsilon.push(j["transitions"][k]["to"]);
-                        }
-
-                    }
-                }
-            }
-
-            newState[newState.size() - 1] = '}';
-            newStates.push_back(newState);
-        }
-        string temp3;
-        for (int i = 0; i < currentState.size(); i++){
-            if (isdigit(currentState[i])){
-                temp3 += currentState[i];
-            }
-        }
-        sort(temp3.begin() , temp3.end());
-        currentState = "{";
-        for (int j = 0; j < temp3.size(); j++){
-            currentState += temp3[j];
-            currentState += ",";
-        }
-        currentState[currentState.size()-1] = '}';
-
-        for (int k = 0; k < newStates.size(); ++k) {
-            string temp4;
-            for (int i = 0; i < newStates[k].size(); i++) {
-                if (isdigit(newStates[k][i])) {
-                    temp4 += newStates[k][i];
-                }
-            }
-            sort(temp4.begin(), temp4.end());
-            newStates[k] = "{";
-            for (int j = 0; j < temp4.size(); j++) {
-                newStates[k] += temp4[j];
-                newStates[k] += ",";
-            }
-            newStates[k][newStates[k].size() - 1] = '}';
-        }
-        if (currentState[0] != '{'){
-            string newString = "{";
-            for (int i = 0; i < currentState.size() ; ++i) {
-                newString+= currentState[i];
-            }
-            currentState = newString;
-        }
-
-        for (int k = 0; k < newStates.size() ; ++k) {
-            accepting = false;
-            starting = false;
-            bool alreadyDone = false;
-            for (int i = 0; i < doneStates.size(); ++i) {
-                if (newStates[k] == doneStates[i]){
-                    alreadyDone = true;
-                    break;
-                }
-            }
-            if (!alreadyDone) {
-                json temp;
-                json temp2;
-                temp["name"] = newStates[k];
-                if (newStates[k].size() == 3) {
-                    string test(1, newStates[k][1]);
-                    if (test == startingState) {
-                        starting = true;
-                    }
-                }
-                for (int i = 0; i < newStates[k].size(); ++i) {
-                    for (int x = 0; x < acceptingStates.size(); ++x) {
-                        if (newStates[k][i] == acceptingStates[x]) {
-                            accepting = true;
-                        }
-                    }
-                }
-                temp["starting"] = starting;
-                temp["accepting"] = accepting;
-                if (newStates[k] != "}")
-                    states.push_back(temp);
-                temp2["from"] = currentState;
-                temp2["to"] = newStates[k];
-                temp2["input"] = j["alphabet"][k];
-                if (newStates[k] != "}")
-                    transitions.push_back(temp2);
-                if (newStates[k] != "}")
-                    notDoneStates.push(newStates[k]);
-            }
-            else {
-                json temp;
-                temp["from"] = currentState;
-                temp["to"] = newStates[k];
-                temp["input"] = j["alphabet"][k];
-                if (newStates[k] != "}")
-                    transitions.push_back(temp);
-            }
-        }
-        doneStates.push_back(currentState);
-    }
-    sort( states.begin(), states.end() );
-    states.erase( unique( states.begin(), states.end() ), states.end() );
-
-    sort( transitions.begin(), transitions.end() );
-    transitions.erase( unique( transitions.begin(), transitions.end() ), transitions.end() );
-    l["states"] = states;
-    l["transitions"] = transitions;
-    ofstream output("output-ssc1.json");
-    output << l;
-    output.close();
-    return DFA("output-ssc1.json");
+    return new_state;
+}
+void ENFA::addTransition(string from, string to, string input) {
+    dfa["transitions"].push_back(
+            {{"from",  from},
+             {"to",    to},
+             {"input", input}});
+}
+void ENFA::addState(string name, bool starting, bool accepting) {
+    dfa["states"].push_back(
+            {{"name",      name},
+             {"starting",  starting},
+             {"accepting", accepting}});
 }

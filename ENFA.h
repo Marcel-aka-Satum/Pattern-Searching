@@ -18,6 +18,7 @@ using json = nlohmann::json;
 class ENFA {
 private:
     json j;
+    json dfa;
     string eps;
     set<vector<string>> allStates;
 public:
@@ -32,6 +33,12 @@ public:
     bool accepts(string input);
     void nextNodes(vector<string>* node, string input);
     void tryEps(vector<string>* nodes);
+    void subsetConstruction(vector<string> const &state);
+    static string vecToString(vector<string> new_state);
+    vector<string> findTransition(vector<string> state, string input);
+    void addTransition(string from, string to, string input);
+    void addState(string name, bool starting, bool accepting);
+
 
     //functions for mssc
 
