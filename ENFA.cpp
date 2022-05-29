@@ -226,16 +226,36 @@ void ENFA::subsetConstruction(vector<string> const &state) {
     }
 }
 string ENFA::vecToString(vector<string> new_state) {
+    vector<int> temp;
+    vector<string> tempr;
     if (new_state.empty())
         return "{}";
-
-    string name = "{" + new_state[0];
-    for (int i = 1; i < new_state.size(); i++) {
-        name += ",";
-        name += new_state[i];
+    if(std::isdigit(new_state[0][0])) {
+        for (int j = 0; j < new_state.size(); j++) {
+            temp.push_back(stoi(new_state[j]));
+        }
+        sort(temp.begin(), temp.end());
+        for (int k = 0; k < temp.size(); k++) {
+            tempr.push_back(to_string(temp[k]));
+        }
+        string name = "{" + tempr[0];
+        for (int i = 1; i < tempr.size(); i++) {
+            name += ",";
+            name += tempr[i];
+        }
+        name += "}";
+        return name;
     }
-    name += "}";
-    return name;
+    else{
+        sort(new_state.begin(),new_state.end());
+        string name = "{" + new_state[0];
+        for (int i = 1; i < new_state.size(); i++) {
+            name += ",";
+            name += new_state[i];
+        }
+        name += "}";
+        return name;
+    }
 }
 vector<string> ENFA::findTransition(vector<string> state, string input) {
     vector<string> new_state;
