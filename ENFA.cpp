@@ -13,8 +13,8 @@ ENFA::ENFA(const string& p) {
 }
 
 
-void ENFA::nextNodes(vector<int>* nodes, string input){
-    vector<int> new_states;
+void ENFA::nextNodes(vector<string>* nodes, string input){
+    vector<string> new_states;
     for(auto node : *nodes){
         for(auto transition : j["transitions"]){
             if(transition["from"] == node && transition["input"] == input && count(new_states.begin(), new_states.end(), transition["to"]) == 0)
@@ -24,7 +24,7 @@ void ENFA::nextNodes(vector<int>* nodes, string input){
     *nodes = new_states;
 }
 
-void ENFA::tryEps(vector<int>* nodes){
+void ENFA::tryEps(vector<string>* nodes){
     for(auto node : *nodes){
         for(auto transition : j["transitions"]){
             if(transition["from"] == node && transition["input"] == eps && count(nodes->begin(), nodes->end(), transition["to"]) == 0){
@@ -38,15 +38,20 @@ void ENFA::tryEps(vector<int>* nodes){
 
 
 bool ENFA::accepts(string input){
-    vector<int> states = {0};
+    vector<string> states = {to_string(0)};
     tryEps(&states);
     for(auto c : input){
         string character(1, c);
         nextNodes(&states, character);
         tryEps(&states);
     }
-
-    return(count(states.begin(), states.end(), j["states"].size() - 1) == 1);
+    int nrtimes = 0;
+    for(int i = 0; i < states.size(); i++){
+        if(to_string(j["states"].size()-1) == states[i]){
+            nrtimes++;
+        }
+    }
+    return(nrtimes==1);
 }
 
 int ENFA::transitionCount(string elem){
