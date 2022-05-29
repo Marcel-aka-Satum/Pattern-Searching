@@ -8,13 +8,13 @@ RE::RE(string r, char e) {
     eps = epsilon;
 }
 void RE::addState(int name, bool accepting, bool starting) {
-    renfa["states"].push_back({{"name",      name},
+    renfa["states"].push_back({{"name",      to_string(name)},
                                {"starting",  starting},
                                {"accepting", accepting}});
 }
 void RE::addTransition(int from, int to, string input) {
-    renfa["transitions"].push_back({{"from",  from},
-                                    {"to",    to},
+    renfa["transitions"].push_back({{"from",  to_string(from)},
+                                    {"to",    to_string(to)},
                                     {"input", input}});
 }
 void RE::sum(block *R, block *S) {
@@ -200,8 +200,8 @@ ENFA RE::toENFA() {
              {"eps",         eps},
              {"transitions", {"", ""}},
              {"alphabet",    {"", ""}},
-             {"states",      {{{"name", 0}, {"starting", true}, {"accepting", false}},
-                                  {{"name", end}, {"starting", false}, {"accepting", true}}}}};
+             {"states",      {{{"name", to_string(0)}, {"starting", true}, {"accepting", false}},
+                                  {{"name", to_string(end)}, {"starting", false}, {"accepting", true}}}}};
 
     block start = {0, end, regex};
 
