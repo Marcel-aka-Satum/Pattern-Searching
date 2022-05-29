@@ -427,219 +427,236 @@ void DFA::doDoorsnede() {
 //function tfa
 
 DFA DFA::minimize() {
-    vector <json> states;
-    vector <json> transitions;
 
-
-    vector<string> del;
-
-
+    //elke state naam wordt in deze vector gezet.
+    vector <string> names;
     for (auto i: j["states"]) {
-        names2.push_back(i["name"]);
+        names.push_back(i["name"]);
     }
-    sort(names2.begin(), names2.end());
+    sort(names.begin(), names.end());
 
 
-    //Accepting check
-    for (int i = 1; i < j["states"].size(); i++) {
-        bool acc1;
-        bool acc2;
-        for (auto k: j["states"]) {
-            if (k["name"] == names2[i]) {
-                acc1 = k["accepting"];
+
+
+    //elke mogelijke combinatie van 2 states wordt hier gemaakt en gezet in een vector.
+    vector <string> arr;
+    for (auto i: names) {
+        for (auto k: names) {
+            if (i != k) {
+                string comb;
+                comb += i;
+                comb += k;
+                sort(comb.begin(), comb.end());
+
+                int dupe = 0;
+                for (auto l: arr) {
+                    if (l == comb) {
+                        dupe = 1;
+                    }
+                }
+                if (dupe == 0) {
+                    arr.push_back(comb);
+                }
             }
         }
+    }
 
-        int temp = 0;
-        bool stop = false;
-        while (!stop) {
+
+
+
+    //Hier maken wij de tabel aan zonder het te visualizeren.
+    //In arr1 zijn alle combinaties waar nog geen kruisje door getrokken zijn.
+    //En arr2 zijn alle combinaties waar een kruisje door getrokke is.
+    vector <string> arr1;
+    vector <string> arr2;
+
+    bool acc1;
+    bool acc2;
+
+    //checken of dat een comb in arr1 moet of arr2.
+    for (auto i: arr) {
+        int counter = 0;
+        for (auto k: i) {
+            string temp = "";
+            temp += k;
+
             for (auto l: j["states"]) {
-                if (l["name"] == names2[temp]) {
+                if (temp == l["name"] and counter == 0) {
+                    acc1 = l["accepting"];
+                    counter += 1;
+                } else if (temp == l["name"] and counter == 1) {
                     acc2 = l["accepting"];
                 }
             }
-
-            if (acc1 != acc2) {
-                string comb = "";
-                comb += names2[i];
-                comb += names2[temp];
-                sort(comb.begin(), comb.end());
-                checkerMini.push_back(comb);
-            }
-
-            if (temp == i) {
-                stop = true;
-            } else {
-                temp += 1;
-            }
+        }
+        if (acc1 == acc2) {
+            arr1.push_back(i);
+        } else {
+            arr2.push_back(i);
         }
     }
 
 
-    string tup;
-    bool end = false;
+    //states uit arr1 halen(dus een kruisje geven) en in arr2 zetten a.d.h.v. de transitiefunctie.
+    int index = 0;
+    for (auto i: arr1) {
+        //cout << "eerste loop: " << i << endl;
+        int counter2 = 0;
+        for (auto a: j["alphabet"]) {
+            //cout << "alphabet: " << a << endl;
+            string newComb = "";
+            for (auto k: i) {
+                //cout << "letter van comb:  " << k << endl;
+                string temp = "";
+                temp += k;
+                for (auto l: j["transitions"]) {
+                    //cout << "in for van trans" << endl;
+                    if (temp == l["from"] and counter2 == 0 and l["input"] == a) {
+                        //cout << "in  de if" << endl;
+                        newComb += l["to"];
+                        counter2 += 1;
+                    } else if (temp == l["from"] and counter2 == 1 and l["input"] == a) {
+                        //cout << "in  de else if" << endl;
+                        newComb += l["to"];
 
-    //Transitie check
-    while (!end) {
-        int counter = 0;
-        for (auto i: j["alphabet"]) {
-            for (auto k: names2) {
-                for (auto l: names2) {
-                    tup = "";
-                    tup += k;
-                    tup += l;
-                    sort(tup.begin(), tup.end());
-
-                    string temp2 = "";
+                    }
+                    //cout << "comb:  " << newComb << endl;
+                }
 
 
-                    if (k != l) {
-                        for (auto o: j["transitions"]) {
-                            if (k == o["from"] && i == o["input"]) {
-                                temp2 += o["to"];
-                            }
-                            if (l == o["from"] && i == o["input"]) {
-                                temp2 += o["to"];
-                            }
+            }
+            //hier halen wij de states uit arr1 en zetten wij ze in arr2.
+            for (auto k: arr2) {
+                //cout << "in1" << endl;
+                if (newComb == k) {
+                    //cout << "in2" << endl;
+                    arr2.push_back(i);
+                    arr1[index] = "ERROR";
+                    break;
+                }
+            }
+        }
+        //een variable die ik gebruik.
+        index += 1;
+    }
+
+    //alle states die nog nietgekruist zijn worden in een nieuwe vector gezet.
+    vector <string> finalVector;
+    for (auto i: arr1) {
+        if (i != "ERROR") {
+            finalVector.push_back(i);
+        }
+    }
+
+
+    //alle states combineren en de single states toevoegen.
+
+    bool stop = false;
+    vector<string> aangepast;
+
+    while(!stop){
+        string temp = "";
+        int index2 = 0;
+        int erin = 1;
+        for (auto i: finalVector) {
+            string str = "";
+            str += i;
+            if (index2 > 0) {
+                for (auto k : temp) {
+                    for (auto l: i) {
+                        if (k == l) {
+                            erin = 1;
+                            str = "";
+                            str += temp;
+                            str += i;
+                            sort(str.begin(), str.end());
                         }
-                        sort(temp2.begin(), temp2.end());
+                    }
+                }
 
-                        int erin = 0;
-                        for (auto p: checkerMini) {
-                            if (tup == p) {
-                                erin = 1;
-                            }
-                        }
-                        if (erin == 0) {
-                            for (auto p: checkerMini) {
-                                if (temp2 == p) {
-                                    checkerMini.push_back(tup);
-                                    counter += 1;
-                                }
-                            }
-                        }
+            }
+            if (erin == 1) {
+                temp = "";
+                temp += str;
+                erin = 0;
+            }
+            index2 += 1;
+        }
+
+        string sub = "";
+        string newTemp = "";
+        for(auto k : temp){
+            string h = "";
+            h += k;
+            if(h != sub){
+                newTemp += h;
+                sub = "";
+                sub += h;
+            }
+        }
+        temp = "";
+        temp += newTemp;
+
+
+        int index3 = 0;
+        for(auto i : finalVector){
+            for(auto k : i){
+                for(auto l : temp){
+                    if(k == l){
+                        finalVector[index3] = "ERROR";
                     }
                 }
             }
+            index3 += 1;
         }
-
-        if (counter == 0) {
-            end = true;
-        }
-    }
-
-
-
-
-    for (auto i: names2) {
-        for (auto j: names2) {
-            int ct = 0;
-            if (i != j) {
-                string pot = "";
-                pot += i;
-                pot += j;
-                sort(pot.begin(), pot.end());
-                for (auto l: checkerMini) {
-                    if (l == pot) {
-                        ct += 1;
-                    }
-                }
-                for (auto k: over) {
-                    if (k == pot) {
-                        ct += 1;
-                    }
-                }
-                if (ct == 0) {
-                    over.push_back(pot);
-                }
-            }
-
-        }
-    }
-
-    /*for(auto i : over){
-        cout << "i: " << i << endl;
-    }*/
-
-    //single states toevoegen aan over vector
-    string str;
-    for (auto i: over) {
-        str += i;
-    }
-
-    for (auto i: names2) {
-        int counter3 = 0;
-        for (auto k: str) {
-            string str2 = "";
-            str2 += k;
-            if (i == str2) {
-                counter3 += 1;
+        vector<string> tempor;
+        for(auto i : finalVector){
+            if(i != "ERROR"){
+                tempor.push_back(i);
             }
         }
-        if (counter3 == 0) {
-            over.push_back(i);
+        finalVector.clear();
+        for(auto i : tempor){
+            finalVector.push_back(i);
+        }
+        finalVector.push_back(temp);
+
+        if(finalVector.size() == aangepast.size()){
+            stop = true;
+        }
+        aangepast.clear();
+        for(auto i : finalVector){
+            aangepast.push_back(i);
         }
     }
 
-
-
-    string str1 = "";
-    string tempor = "";
-    for (auto i: over) {
-        string str1 = i;
-        for (auto l: over) {
-            string str2 = l;
-            for (auto k: str1) {
-                for (auto p: str2) {
-                    if (k == p && str1 != str2) {
-                        tempor += str1;
-                        tempor += str2;
-                    }
+    //single states toevoegen.
+    int ctr = 0;
+    for(auto i : names){
+        string t = "";
+        t += i;
+        for(auto k : finalVector){
+            for(auto l : k){
+                string y = "";
+                y += l;
+                if(t == y){
+                    ctr += 1;
                 }
             }
         }
-    }
-    for (int k = 0; k < tempor.size(); k++) {
-        for (int l = k + 1; l < tempor.size(); l++) {
-            if (tempor[k] == tempor[l]) {
-                char temp = tempor[k];
-                tempor.erase(remove(tempor.begin(), tempor.end(), tempor[k]), tempor.end());
-                tempor += temp;
-            }
+        if(ctr == 0){
+            finalVector.push_back(i);
         }
+        ctr = 0;
     }
-    sort(tempor.begin(), tempor.end());
-    //cout << "tempor: " << tempor << endl;
-    for(auto i : over){
-        int ctrr = 0;
-        for(auto l : i){
-            for(auto k : tempor){
-                //cout << "l: " << l << "k: " << k << endl;
-                if(l == k){
-                    ctrr += 1;
-                }
-            }
-        }
-        if(ctrr == i.size()){
-            del.push_back(i);
-        }
-    }
-    for(auto i : del){
-        over.erase(remove(over.begin(), over.end(), i), over.end());
-    }
-    over.push_back(tempor);
 
-
-
-
-    /*for(auto i : over){
-        cout << "z: " << i << endl;
-    }*/
+    vector<json> states;
+    vector<json> transitions;
 
     //dfa states
     bool accept;
     bool start;
-    for(auto i : over){
+    for(auto i : finalVector){
         for(auto k : j["states"]){
             json state;
             string ter = "";
@@ -657,7 +674,8 @@ DFA DFA::minimize() {
                 state["starting"] = start;
                 states.push_back(state);
                 break;
-            }else if(i.size() > 1 and k["name"] == ter){
+            }
+            else if(i.size() > 1 and k["name"] == ter){
                 accept = k["accepting"];
                 start = k["starting"];
 
@@ -682,9 +700,8 @@ DFA DFA::minimize() {
         }
     }
 
-
     //dfa transitions
-    for(auto i : over){
+    for(auto i : finalVector){
         for(auto l : j["alphabet"]) {
             for (auto k: j["transitions"]) {
                 string ter = "";
@@ -700,7 +717,7 @@ DFA DFA::minimize() {
                     string po = "";
                     po += k["to"];
 
-                    for(auto u : over){
+                    for(auto u : finalVector){
                         for(auto p : u){
                             string yu = "";
                             yu += p;
@@ -725,7 +742,8 @@ DFA DFA::minimize() {
                     trans["to"] = name4;
                     trans["input"] = l;
                     transitions.push_back(trans);
-                }//combined states
+                }
+                    //combined states
                 else if(i.size() > 1 and k["from"] == ter and k["input"] == l){
                     json trans;
                     int countertje5 = 0;
@@ -744,7 +762,7 @@ DFA DFA::minimize() {
                     top += k["to"];
 
                     string qui;
-                    for(auto h : over){
+                    for(auto h : finalVector){
                         for(auto m : h){
                             string tp = "";
                             tp += m;
@@ -775,6 +793,9 @@ DFA DFA::minimize() {
         }
     }
 
+
+
+    //de dfa aan maken en meegeven als een json file.
     dfa["type"] = "DFA";
     dfa["alphabet"] = j["alphabet"];
     dfa["states"] = states;
@@ -789,9 +810,9 @@ DFA DFA::minimize() {
 }
 void DFA::printTable() {
     for(auto i : j["states"]){
-        names.push_back(i["name"]);
+        names2.push_back(i["name"]);
     }
-    sort(names.begin(), names.end());
+    sort(names2.begin(), names2.end());
 
 
     //Accepting check
@@ -799,7 +820,7 @@ void DFA::printTable() {
         bool acc1;
         bool acc2;
         for(auto k : j["states"]){
-            if(k["name"] == names[i]){
+            if(k["name"] == names2[i]){
                 acc1 = k["accepting"];
             }
         }
@@ -808,15 +829,15 @@ void DFA::printTable() {
         bool stop = false;
         while(!stop){
             for(auto l : j["states"]){
-                if(l["name"] == names[temp]){
+                if(l["name"] == names2[temp]){
                     acc2 = l["accepting"];
                 }
             }
 
             if(acc1 != acc2){
                 string comb = "";
-                comb += names[i];
-                comb += names[temp];
+                comb += names2[i];
+                comb += names2[temp];
                 sort(comb.begin(), comb.end());
                 checker.push_back(comb);
             }
@@ -838,8 +859,8 @@ void DFA::printTable() {
     while(!end) {
         int counter = 0;
         for (auto i: j["alphabet"]) {
-            for (auto k: names) {
-                for (auto l: names) {
+            for (auto k: names2) {
+                for (auto l: names2) {
                     tup = "";
                     tup += k;
                     tup += l;
@@ -895,8 +916,8 @@ void DFA::printTable() {
             int ctr = 0;
 
             tup = "";
-            tup += names[i];
-            tup += names[tempor];
+            tup += names2[i];
+            tup += names2[tempor];
             sort(tup.begin(), tup.end());
 
             for (auto h: checker) {
@@ -920,8 +941,8 @@ void DFA::printTable() {
     }
 
     cout << "    ";
-    for(int qr = 0; qr < names.size()-1;qr++){
-        cout << names[qr] << "   ";
+    for(int qr = 0; qr < names2.size()-1;qr++){
+        cout << names2[qr] << "   ";
     }
 
     cout << endl;
