@@ -16,6 +16,14 @@ private:
     json dfa1;
     json dfa2;
     bool unieOrDoorsnede;
+    //TFA variable
+    json dfa;
+    vector<string> names;
+    vector<string> names2;
+    vector<string> checker;
+    vector<string> checkerMini;
+    vector<string> over;
+    vector<string> rdy;
 public:
     //common functions
     DFA(const string& dfa);
@@ -29,9 +37,10 @@ public:
     void doUnie();
     void doDoorsnede();
 
-    //functions for mssc
 
-    //DFA(json v);
+    //function tfa
+    void printTable();
+    DFA minimize();
 };
 
 #endif //SUBSET_CONSTRUCTION_DFA_H
