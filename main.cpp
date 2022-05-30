@@ -7,11 +7,14 @@
 using namespace std;
 
 int main(){
-    RE re("(m+y)*+(e+y+m+i)s",'e');
+    RE re("pet",'e');
     ENFA enfa = re.toENFA();
-    cout << boolalpha << enfa.accepts("ys") << endl;
+    cout << boolalpha << enfa.accepts("pet") << endl;
+    enfa.print();
     DFA dfa = enfa.toDFA();
-    cout << boolalpha << dfa.accepts("ys") << endl;
     dfa.print();
+    cout << boolalpha << dfa.accepts("pet") << endl;
+    DFA edfa = dfa.minimize();
+    cout << boolalpha << edfa.accepts("pet") << endl;
     return 0;
 }

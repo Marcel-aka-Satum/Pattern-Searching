@@ -190,7 +190,7 @@ void RE::buildStates(int end) {
 
 void RE::buildAlph() {
     for (auto a : alph) {
-        if (!a.empty() && a != eps)
+        if (!a.empty())
             renfa["alphabet"].push_back(a);
     }
 }
