@@ -16,6 +16,7 @@ void DFA::print(){
     cout << setw(4) << j << endl;
 }
 bool DFA::accepts(const string &s) {
+
     bool states[j["states"].size()];
     string currentState;
     // hier kijk ik wat mijn starting state is en zet ik dat state true en geef dat door aan de var currentState
@@ -27,7 +28,8 @@ bool DFA::accepts(const string &s) {
     }
     // hier kijk ik of de char in de alphabet zit, zoniet dn zet ik de curr state nr een dead state.
     for (auto i: s) {
-        string inp(1,i);
+        string inp;
+        inp += i;
         bool inAlphabet = false;
         for (const auto & l : j["alphabet"]){
             if (inp == l){
@@ -37,10 +39,11 @@ bool DFA::accepts(const string &s) {
         if (!inAlphabet){
             currentState = "DEAD STATE";
         }
+
         // hier kijk ik welke transitie het moet doen, door te kijken wat de currentState is en de input.
-        for (int k = 0; k < j["transitions"].size(); k++){
-            if ((j["transitions"][k]["from"] == currentState) and (j["transitions"][k]["input"] == inp)){
-                currentState = j["transitions"][k]["to"];
+        for (auto k : j["transitions"]){
+            if ((k["from"] == currentState) and (k["input"] == inp)){
+                currentState = k["to"];
                 break;
             }
         }
@@ -65,12 +68,232 @@ DFA::DFA(json v, bool test) {
 DFA::DFA(const DFA &a, const DFA &b, bool c) {
     dfa1 = a.j;
     dfa2 = b.j;
+    doorsnede_unie = c;
+
     unieOrDoorsnede = c;
     if (c)
         doDoorsnede();
     else
         doUnie();
 }
+
+DFA DFA::productAutomaat() {
+    json product;
+
+    vector<json> states;
+    vector<json> transitions;
+
+
+    bool accepting = false;
+    string startingState = "(";
+    string nummersOnly;
+
+    vector<string> start;
+    for (auto i: dfa1["states"]) {
+        if (i["starting"] == true) {
+            start.push_back(i["name"]);
+            nummersOnly += i["name"];
+            accepting = i["accepting"];
+        }
+
+    }
+    for (auto i: dfa2["states"]) {
+        if (i["starting"] == true) {
+            start.push_back(i["name"]);
+            nummersOnly += i["name"];
+            accepting = i["accepting"];
+        }
+    }
+
+    int komma = 0;
+    for (auto i: start) {
+        if (komma > 0) {
+            startingState += ",";
+        }
+        startingState += i;
+        komma += 1;
+    }
+    startingState += ")";
+
+
+    json stateS;
+    stateS["name"] = startingState;
+    stateS["starting"] = true;
+    stateS["accepting"] = accepting;
+    states.push_back(stateS);
+
+    string newTo;
+    int index = 0;
+    bool doorgaan = true;
+    while(doorgaan) {
+        vector<string> qq;
+        //cout << "num: " << nummersOnly << endl;
+        for (auto i: dfa1["alphabet"]) {
+            bool accepting2 = false;
+            newTo = "(";
+            string temp;
+            int ctr = 0;
+            for (auto k: dfa1["transitions"]) {
+
+                temp = "";
+                temp += start[0];
+                //cout << "start[0]:  " << temp << endl;
+                //cout << "kfrom: " << k["from"] << "    temp: " << temp << endl;
+                if (k["from"] == temp and i == k["input"]) {
+                    //cout << "kto1: " << k["to"] << endl;
+                    //cout << "kto:  " << k["to"] << endl;
+                    newTo += k["to"];
+                    newTo += ",";
+                    for (auto l: dfa1["states"]) {
+                        if (l["name"] == k["to"]) {
+                            if(l["accepting"] == true){
+                                ctr += 1;
+                            }
+
+                        }
+                    }
+                }
+            }
+
+            for (auto k: dfa2["transitions"]) {
+
+                //cout << "kfrom: " << k["from"] << "    num[1]: " << nummersOnly[1] << endl;
+                temp = "";
+                temp += start[1];
+                //cout << "start[0]:  " << temp << endl;
+                if (k["from"] == temp and i == k["input"]) {
+                    //cout << "kto2: " << k["to"] << endl;
+                    //cout << "kto:  " << k["to"] << endl;
+                    newTo += k["to"];
+                    for (auto l: dfa2["states"]) {
+                        if (l["name"] == k["to"]) {
+                            if(l["accepting"] == true){
+                                ctr += 1;
+                            }
+
+                        }
+                    }
+                }
+            }
+            newTo += ")";
+
+
+            json transitie;
+            transitie["from"] = startingState;
+            transitie["to"] = newTo;
+            transitie["input"] = i;
+            transitions.push_back(transitie);
+
+            bool statesCheck = true;
+            for (auto k: states) {
+                if (k["name"] == newTo) {
+                    statesCheck = false;
+                }
+            }
+
+            if(doorsnede_unie){
+                if(ctr == 2){
+                    accepting2 = true;
+                }
+            }else{
+                if(ctr >= 1){
+                    accepting2 = true;
+                }
+            }
+
+
+
+            if (statesCheck) {
+                json state;
+                state["name"] = newTo;
+                state["starting"] = false;
+                state["accepting"] = accepting2;
+                states.push_back(state);
+            }
+
+        }
+
+
+
+        index += 1;
+        if (index == states.size()) {
+            doorgaan = false;
+        } else {
+
+            string nextState = states[index]["name"];
+            int counterrr = 0;
+            int counterrr2 = 0;
+            string tre;
+            string tres;
+            for(auto k : nextState){
+                string var1;
+                var1 += k;
+
+                if(var1 == "{"){
+                    counterrr += 1;
+                }
+
+                if(counterrr >= 1){
+                    if(counterrr2 == 0){
+                        tre += k;
+                    }
+                    if(counterrr2 == 1){
+                        tres += k;
+                    }
+                }
+
+                if(var1 == "}"){
+                    counterrr -= 1;
+
+                }
+
+                if(counterrr == 0 and var1 != "(" and var1 != ")"){
+                    counterrr2 = 1;
+                }
+
+
+            }
+
+            qq.push_back(tre);
+            qq.push_back(tres);
+
+
+            nummersOnly = "";
+            start.clear();
+            startingState = "(";
+            int komCheck = 0;
+            for (auto k: qq) {
+                if(komCheck == 1){
+                    startingState += ",";
+                }
+                start.push_back(k);
+                nummersOnly += k;
+                startingState += k;
+                komCheck += 1;
+            }
+            startingState += ")";
+
+        }
+
+    }
+
+
+
+    product["type"] = "DFA";
+    product["alphabet"] = dfa1["alphabet"];
+    product["states"] = states;
+    product["transitions"] = transitions;
+
+    ofstream output("product.json");
+    output << product;
+    output.close();
+
+    return DFA("product.json");
+
+}
+
+
+
 
 void DFA::doUnie() {
     vector<string> allStates;

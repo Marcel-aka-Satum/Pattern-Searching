@@ -15,6 +15,7 @@ private:
     json j;
     json dfa1;
     json dfa2;
+    bool doorsnede_unie;
     bool unieOrDoorsnede;
     //TFA variable
     json dfa;
@@ -34,6 +35,7 @@ public:
 
     DFA(json v, bool test);
     DFA(const DFA& a, const DFA& b, bool c);
+    DFA productAutomaat();
     void doUnie();
     void doDoorsnede();
 
