@@ -17,10 +17,12 @@ private:
     string regex1;
     string regex2;
     string tekstBestand;
-public:
-    PatternSearching(string &b, string& re);
+    bool UorD = false;
 
-    PatternSearching(string &b, string& re1, string& re2);
+public:
+    PatternSearching(string b, string re);
+    PatternSearching(string b, string re1, string re2, bool u);
+    void search();
 };
 
 
