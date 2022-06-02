@@ -34,6 +34,7 @@ void PatternSearching::search() {
                 if (minDfa.accepts(word)){
                     string positie = "(" + to_string(x) + ", " + to_string(y) + ")";
                     posities.push_back(positie);
+                    x+=1;
                 }
                 else{
                     x += 1;
