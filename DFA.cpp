@@ -19,11 +19,13 @@ bool DFA::accepts(const string &s) {
 
     bool states[j["states"].size()];
     string currentState;
+    string beginState;
     // hier kijk ik wat mijn starting state is en zet ik dat state true en geef dat door aan de var currentState
     for(int i = 0; i < j["states"].size(); i++){
         if (j["states"][i]["starting"] == true){
             states[i] = true;
             currentState = j["states"][i]["name"];
+            beginState = j["states"][i]["name"];
         }
     }
     // hier kijk ik of de char in de alphabet zit, zoniet dn zet ik de curr state nr een dead state.
@@ -34,18 +36,29 @@ bool DFA::accepts(const string &s) {
         for (const auto & l : j["alphabet"]){
             if (inp == l){
                 inAlphabet = true;
+                if (currentState == "DEAD STATE"){
+                    currentState = beginState;
+                }
             }
         }
-        if (!inAlphabet){
-            currentState = "DEAD STATE";
-        }
-
-        // hier kijk ik welke transitie het moet doen, door te kijken wat de currentState is en de input.
-        for (auto k : j["transitions"]){
-            if ((k["from"] == currentState) and (k["input"] == inp)){
-                currentState = k["to"];
-                break;
+        if (inAlphabet) {
+            // hier kijk ik welke transitie het moet doen, door te kijken wat de currentState is en de input.
+            for (auto k: j["transitions"]) {
+                if ((k["from"] == currentState) and (k["input"] == inp)) {
+                    currentState = k["to"];
+                    for (int h = 0; h < j["states"].size(); h++) {
+                        if (j["states"][h]["name"] == currentState) {
+                            if (j["states"][h]["accepting"] == true) {
+                                return true;
+                            }
+                        }
+                    }
+                    break;
+                }
             }
+        }
+        else{
+            currentState="DEAD STATE";
         }
     }
     // hier check ik waar mijn currentState is geindigd en of dat state een accepting state is, zoja return ik true anders false.
@@ -229,27 +242,27 @@ DFA DFA::productAutomaat() {
                 string var1;
                 var1 += k;
 
-                if(var1 == "{"){
-                    counterrr += 1;
-                }
-
-                if(counterrr >= 1){
-                    if(counterrr2 == 0){
-                        tre += k;
+                    if(var1 == "{"){
+                        counterrr += 1;
                     }
-                    if(counterrr2 == 1){
-                        tres += k;
+
+                    if(counterrr >= 1){
+                        if(counterrr2 == 0){
+                            tre += k;
+                        }
+                        if(counterrr2 == 1){
+                            tres += k;
+                        }
                     }
-                }
 
-                if(var1 == "}"){
-                    counterrr -= 1;
+                    if(var1 == "}"){
+                        counterrr -= 1;
 
-                }
+                    }
 
-                if(counterrr == 0 and var1 != "(" and var1 != ")"){
-                    counterrr2 = 1;
-                }
+                    if(counterrr == 0 and var1 != "(" and var1 != ")"){
+                        counterrr2 = 1;
+                    }
 
 
             }
@@ -1309,4 +1322,3 @@ void DFA::printTable() {
 
     cout << endl;
 }
-
