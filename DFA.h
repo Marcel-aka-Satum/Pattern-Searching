@@ -7,9 +7,27 @@
 #include <string>
 #include <utility>
 #include <vector>
-
 using json = nlohmann::json;
 using namespace std;
+struct State{
+    // Copy constructor
+    State(const State& state);
+    // Default constructor
+    State() {}
+    State(string n, bool acc, bool start) : name(n), accepting(acc), starting(start) {}
+
+    State& operator= (const State& copy);
+
+    string name;
+    bool accepting = false;
+    bool starting = false;
+    map<char, vector<State*>> transitions;
+};
+struct deadState : public State {
+    deadState(vector<char>& alphabet);
+    bool used = false;
+};
+class RE;
 class DFA {
 private:
     json j;
@@ -19,12 +37,14 @@ private:
     bool unieOrDoorsnede;
     //TFA variable
     json dfa;
-    vector<string> names;
-    vector<string> names2;
-    vector<string> checker;
-    vector<string> checkerMini;
-    vector<string> over;
-    vector<string> rdy;
+    //state elimination
+    string reg;
+    vector<State*> states;
+    vector<State*> acceptingStates;
+    State* startState;
+    vector<char> alphabet;
+    string type;
+
 public:
     //common functions
     DFA(const string& dfa);
@@ -39,10 +59,16 @@ public:
     void doUnie();
     void doDoorsnede();
 
+    virtual ~DFA();
 
     //function tfa
     void printTable();
     DFA minimize();
+
+    //function state elimination
+    RE toRE(char epsilon);
+    vector<State*> sortStates(const vector<State*>& states) const;
+    static bool ignore_eps(State* state,const std::pair<const char, vector<State*>> trans, char epsilon);
 };
 
 #endif //SUBSET_CONSTRUCTION_DFA_H

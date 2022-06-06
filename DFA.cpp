@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include "json.hpp"
+#include "RE.h"
 
 using namespace std;
 
@@ -11,6 +12,65 @@ using json = nlohmann::json;
 DFA::DFA(const string& dfa){
     ifstream input(dfa);
     input >> j;
+    type = j["type"]; // Get type
+
+    // Create alphabet
+    for (string c : j["alphabet"]) {
+        alphabet.push_back(c[0]);
+    }
+    // Initialise states
+    for (auto state : j["states"]) {
+        State* s = new State;
+        s->name = state["name"];
+        // Accepting state
+        if (state["accepting"]) {
+            // Add to the accepting states vector
+            acceptingStates.push_back(s);
+            s->accepting = true;
+        }
+        // Starting state
+        if (state["starting"]) {
+            // Set the start state
+            startState = s;
+            s->starting = true;
+        }
+        // Store state
+        states.push_back(s);
+//        cout << "New State: " << s->name << endl;
+    }
+    // Initialise state transitions
+    for (auto trans : j["transitions"]) {
+        State* sPtr = nullptr;
+        State* ePtr = nullptr;
+        // Get correct states for transition
+        for (auto state : states) {
+            // Check whether names correspond
+            if (state->name == trans["from"]) sPtr = state; // Set the right pointer
+            if (state->name == trans["to"]) ePtr = state;
+        }
+        // Get transition character
+        string symb = trans["input"];
+        bool inAlpha = false;
+        // Check whether transition character in alphabet
+        for (char c : alphabet) {
+            if (symb[0] == c) { inAlpha = true; break; }
+        }
+        if (!inAlpha) { // Transition character not in alphabet
+            cerr << "Transition on character '" << symb << "' not in alphabet" << endl;
+            continue;
+        }
+        if (sPtr->transitions.find(symb[0]) == sPtr->transitions.cend()) {
+            // No transitions on character exist for begin state
+            vector<State*> v; v.push_back(ePtr);
+            // Add character and transition state to transition map begin state
+            sPtr->transitions.insert({symb[0], v});
+        } else {
+            // Transitions on character already exist for begin state
+            // Add destination state to transition character in transitions of begin state
+            sPtr->transitions[symb[0]].push_back(ePtr);
+        }
+//        cout << "Transition from " << sPtr->name << " to " << ePtr->name << " on " << symb << endl;
+    }
 }
 void DFA::print(){
     cout << setw(4) << j << endl;
@@ -140,7 +200,6 @@ DFA DFA::productAutomaat() {
     bool doorgaan = true;
     while(doorgaan) {
         vector<string> qq;
-        //cout << "num: " << nummersOnly << endl;
         for (auto i: dfa1["alphabet"]) {
             bool accepting2 = false;
             newTo = "(";
@@ -150,11 +209,7 @@ DFA DFA::productAutomaat() {
 
                 temp = "";
                 temp += start[0];
-                //cout << "start[0]:  " << temp << endl;
-                //cout << "kfrom: " << k["from"] << "    temp: " << temp << endl;
                 if (k["from"] == temp and i == k["input"]) {
-                    //cout << "kto1: " << k["to"] << endl;
-                    //cout << "kto:  " << k["to"] << endl;
                     newTo += k["to"];
                     newTo += ",";
                     for (auto l: dfa1["states"]) {
@@ -169,14 +224,9 @@ DFA DFA::productAutomaat() {
             }
 
             for (auto k: dfa2["transitions"]) {
-
-                //cout << "kfrom: " << k["from"] << "    num[1]: " << nummersOnly[1] << endl;
                 temp = "";
                 temp += start[1];
-                //cout << "start[0]:  " << temp << endl;
                 if (k["from"] == temp and i == k["input"]) {
-                    //cout << "kto2: " << k["to"] << endl;
-                    //cout << "kto:  " << k["to"] << endl;
                     newTo += k["to"];
                     for (auto l: dfa2["states"]) {
                         if (l["name"] == k["to"]) {
@@ -242,27 +292,27 @@ DFA DFA::productAutomaat() {
                 string var1;
                 var1 += k;
 
-                    if(var1 == "{"){
-                        counterrr += 1;
-                    }
+                if(var1 == "{"){
+                    counterrr += 1;
+                }
 
-                    if(counterrr >= 1){
-                        if(counterrr2 == 0){
-                            tre += k;
-                        }
-                        if(counterrr2 == 1){
-                            tres += k;
-                        }
+                if(counterrr >= 1){
+                    if(counterrr2 == 0){
+                        tre += k;
                     }
-
-                    if(var1 == "}"){
-                        counterrr -= 1;
-
+                    if(counterrr2 == 1){
+                        tres += k;
                     }
+                }
 
-                    if(counterrr == 0 and var1 != "(" and var1 != ")"){
-                        counterrr2 = 1;
-                    }
+                if(var1 == "}"){
+                    counterrr -= 1;
+
+                }
+
+                if(counterrr == 0 and var1 != "(" and var1 != ")"){
+                    counterrr2 = 1;
+                }
 
 
             }
@@ -740,22 +790,6 @@ DFA DFA::minimize() {
         }
     }
 
-    /*cout << "arr1: "<< endl;
-    for(auto i : arr1){
-        cout << "vector: " << endl;
-        for(auto k : i){
-            cout << k << endl;
-        }
-    }
-    cout << "arr2: "<< endl;
-    for(auto i : arr2){
-        cout << "vector: " << endl;
-        for(auto k : i){
-            cout << k << endl;
-        }
-    }
-    cout << "________________" << endl;*/
-
 
     //states uit arr1 halen(dus een kruisje geven) en in arr2 zetten a.d.h.v. de transitiefunctie.
     bool rec = true;
@@ -769,56 +803,42 @@ DFA DFA::minimize() {
                 vector <string> zz;
                 vector <string> ff;
                 string hala = "";
-                //cout << "alphabet: " << a << endl;
                 for (auto k: i) {
-                    //cout << "letter van comb:  " << k << endl;
                     newComb = "";
                     string temp = "";
                     temp += k;
                     zz.push_back(temp);
                     hala += k;
                     for (auto l: j["transitions"]) {
-                        //cout << "in for van trans" << endl;
                         if (temp == l["from"] and counter2 == 0 and l["input"] == a) {
-                            //cout << "in  de if" << endl;
                             newComb += l["to"];
                             ff.push_back(newComb);
                             counter2 += 1;
                         } else if (temp == l["from"] and counter2 == 1 and l["input"] == a) {
-                            //cout << "in  de else if" << endl;
                             newComb += l["to"];
                             ff.push_back(newComb);
 
                         }
-                        //cout << "comb:  " << newComb << endl;
                     }
 
 
                 }
                 //hier halen wij de states uit arr1 en zetten wij ze in arr2.
                 for (auto k: arr2) {
-                    //cout << "in1" << endl;
                     int counter3 = 0;
-                    //cout << "nieuwe k: " << endl;
                     for (auto l: k) {
-                        //cout << "in2" << endl;
                         string vartje = "";
                         vartje += l;
                         for (auto op: ff) {
-                            //cout << "in3" << endl;
                             string vartje1 = "";
                             vartje1 += op;
-                            //cout << "arr2: " << vartje << "  zz: " << vartje1 << endl;
                             if (vartje == vartje1) {
-                                //cout << "in4" << endl;
                                 counter3 += 1;
                                 break;
                             }
                         }
                     }
                     if (counter3 == 2) {
-                        //cout << "in55555555555555555555" << endl;
-                        //cout << "print: " << zz[0] << "    " << zz[1] << endl;
                         arr2.push_back(zz);
                         arr1[index].clear();
                         break;
@@ -826,18 +846,6 @@ DFA DFA::minimize() {
                     }
                 }
             }
-            /*cout << "arr1: "<< endl;
-            for(auto i : arr1){
-                cout << "vector: " << endl;
-                for(auto k : i){
-                    cout << k << endl;
-                }
-            }
-            cout << "arr2: "<< endl;
-            for(auto i : arr2){
-                cout << i << endl;
-            }
-            cout << "________________" << endl;*/
 
             //een variable die ik gebruik.
             index += 1;
@@ -865,15 +873,6 @@ DFA DFA::minimize() {
         finalVector.push_back(i);
     }
 
-    /*for(auto i : finalVector){
-        cout << "nieuw: " << endl;
-        for(auto k : i){
-            cout << "finalvectortop: " << k << endl;
-        }
-    }
-    cout << "___________________" << endl;*/
-
-
     //alle states combineren en de single states toevoegen.
 
     bool stop = false;
@@ -890,8 +889,6 @@ DFA DFA::minimize() {
             if(index2 == 0) {
                 pp.push_back(i);
             }
-            /*string str = "";
-            str += i;*/
             if (index2 > 0) {
                 vector<string> hah;
                 for (auto k : tempo) {
@@ -913,10 +910,6 @@ DFA DFA::minimize() {
                             }
                             pp.push_back(hah);
                             erin = 1;
-                            /*str = "";
-                            str += temp;
-                            str += i;
-                            sort(str.begin(), str.end());*/
                         }
                     }
                 }
@@ -924,16 +917,10 @@ DFA DFA::minimize() {
             }
             if (erin == 1) {
                 tempo = pp[0];
-                /*temp = "";
-                temp += str;*/
                 erin = 0;
             }
             index2 += 1;
         }
-
-        /*for(auto i : tempo){
-            cout << "tempoV: " << i << endl;
-        }*/
 
         //Verwijderen van duplicates.
         auto end = tempo.end();
@@ -985,8 +972,6 @@ DFA DFA::minimize() {
         }
     }
 
-
-
     //single states toevoegen.
     int ctr = 0;
     for(auto i : names){
@@ -1009,24 +994,13 @@ DFA DFA::minimize() {
         ctr = 0;
     }
 
-
     vector<json> states;
     vector<json> transitions;
-
-    /*for(auto i : finalVector){
-        cout << "nieuwe vector." << endl;
-        for(auto k : i){
-            cout << "finalVector: " << k << endl;
-        }
-    }*/
-
-
 
     //dfa states
     bool accept;
     bool start;
     for(auto i : finalVector) {
-        //for (auto mo : i) {
         for (auto k: j["states"]) {
             json state;
             string ter = "";
@@ -1067,12 +1041,10 @@ DFA DFA::minimize() {
             }
 
         }
-        //}
     }
 
     //dfa transitions
     for(auto i : finalVector) {
-        //for (auto mo: i) {
         for (auto l: j["alphabet"]) {
             for (auto k: j["transitions"]) {
                 string ter = "";
@@ -1163,7 +1135,6 @@ DFA DFA::minimize() {
                 }
             }
         }
-        //}
     }
 
 
@@ -1184,6 +1155,8 @@ DFA DFA::minimize() {
 }
 
 void DFA::printTable() {
+    vector<string> names2;
+    vector<string> checker;
     for(auto i : j["states"]){
         names2.push_back(i["name"]);
     }
@@ -1321,4 +1294,194 @@ void DFA::printTable() {
     }
 
     cout << endl;
+}
+
+bool DFA::ignore_eps(State* state,  std::pair<const char, vector<State *>> trans, char epsilon) {
+    int counter = 0;
+    for(auto y: state->transitions){
+        for(auto x: y.second){
+            if(x->name != "{}"){
+                counter++;
+            }
+        }
+    }
+    if(counter > 1){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
+vector<State*> DFA::sortStates(const vector<State *> &states) const {
+    vector<State*> sorted; // Sorted part
+    vector<State*> unsorted = states; // Unsorted part
+    // While not everything sorted
+    while (sorted.size() != states.size()) {
+        // Set lowest state to first state
+        State* min = unsorted[0];
+        int index = 0;
+        // Loop over unsorted states
+        for (int i = 0; i < unsorted.size(); ++i) {
+            // States comes before current min state
+            if (unsorted[i]->name < min->name) {
+                // Change min state
+                min = unsorted[i];
+                index = i;
+            }
+        }
+        // Add min state to sorted vector
+        sorted.push_back(min);
+        // Clear min state from unsorted vector
+        unsorted.erase(unsorted.begin() + index);
+    }
+    return sorted;
+}
+RE DFA::toRE(char epsilon) {
+    string regexString;
+    for (auto accState : acceptingStates) {
+        // Vector to store all states
+        vector<State*> elimStates = sortStates(states);
+        map<State*, map<State*, string>> transitionMap;
+        for (auto state : states) {
+            map<State *, string> desMap;
+            if (state->name != "{}") {
+                for (auto const &trans: state->transitions) {
+                    string c;
+                    c = trans.first;
+                    for (auto desState: trans.second) {
+                        bool check = ignore_eps(state,trans,epsilon);
+                        if(!check) {
+                            if (desState->name != "{}") {
+                                if (desMap.find(desState) == desMap.cend())
+                                    desMap.insert(make_pair(desState, c));
+                                else
+                                    desMap[desState] = desMap[desState] + "+" + c;
+                            }
+                        }
+                        else{
+                            if(desState->name != "{}" && trans.first != epsilon){
+                                if (desMap.find(desState) == desMap.cend())
+                                    desMap.insert(make_pair(desState, c));
+                                else
+                                    desMap[desState] = desMap[desState] + "+" + c;
+                            }
+                        }
+                    }
+                }
+            }
+            if (!desMap.empty())
+                transitionMap.insert(make_pair(state, desMap));
+        }
+
+        bool onlyAccepting = false;
+
+        while (!onlyAccepting) {
+            onlyAccepting = true;
+            for (auto state : elimStates) {
+                if ((state != startState) && (state != accState))
+                    onlyAccepting = false;
+            }
+            if (onlyAccepting)
+                break;
+
+            int i = 0;
+            while (elimStates[i] == startState || elimStates[i] == accState) {
+                i += 1;
+            }
+
+            bool selfTrans = false;
+            string selfTransStr;
+            State *elimState = elimStates[i];
+            if (transitionMap[elimState].find(elimState) != transitionMap[elimState].cend()) {
+                selfTrans = true;
+                selfTransStr = transitionMap[elimState][elimState];
+            }
+
+            map<State *, map<State *, string>> tempMap;
+            for (auto set : transitionMap) {
+                if (set.first == elimState)
+                    continue;
+                map<State *, string> tempTransMap;
+                for (auto tState : set.second) {
+                    if (tState.first == elimState) {
+                        for (auto elimStateTrans : transitionMap[elimState]) {
+                            if (elimStateTrans.first == elimState)
+                                continue;
+                            string reTrans = tState.second;
+                            if (selfTrans)
+                                reTrans += selfTransStr + "*";
+                            reTrans += elimStateTrans.second;
+                            if (elimStateTrans.first == set.first) {
+                                reTrans.insert(reTrans.begin(), '(');
+
+
+                            }
+                            if (tempTransMap.find(elimStateTrans.first) == tempTransMap.cend())
+                                tempTransMap.insert(make_pair(elimStateTrans.first, reTrans));
+                            else
+                                tempTransMap[elimStateTrans.first] =
+                                        "(" +  tempTransMap[elimStateTrans.first] + "+" + reTrans + ")";
+                        }
+                    } else {
+                        tempTransMap.insert(make_pair(tState.first, tState.second));
+                    }
+                }
+                if (!tempTransMap.empty())
+                    tempMap.insert(make_pair(set.first, tempTransMap));
+
+            }
+            transitionMap = tempMap;
+
+            elimStates.erase(elimStates.begin() + i);
+        }
+
+        string R = transitionMap[startState][startState];
+        string S = transitionMap[startState][accState];
+        string U = transitionMap[accState][accState];
+        string T = transitionMap[accState][startState];
+
+
+        string regex;
+
+        if ((!T.empty() && !S.empty()) || !R.empty()) {
+            if (!S.empty() && (!T.empty() || !R.empty()))
+                regex += '(';
+            if (!R.empty() && !S.empty()) {
+                if (!T.empty())
+                    regex += '(';
+                regex += R;
+                if (!T.empty())
+                    regex += ")+";
+            }
+            if (!S.empty() && !T.empty()) {
+                regex += '(' + S + ')';
+                if (!U.empty())
+                    regex += '(' + U + ")*";
+                regex += '(' + T + ')';
+            }
+            if (!S.empty() && (!T.empty() || !R.empty()))
+                regex += ")*";
+        }
+        if (!S.empty()) {
+            regex +=  S ;
+        }
+        if (!U.empty() && !S.empty())
+            regex += '(' +  U + ")*";
+
+        if (regexString.empty())
+            regexString = regex;
+        else if (!regex.empty()) {
+            regexString += "+" + regex;
+        }
+    }
+
+    RE re(regexString, 'e');
+    return re;
+
+}
+
+DFA::~DFA() {
+    for (auto state : states) {
+        delete state;
+    }
 }

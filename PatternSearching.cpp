@@ -31,13 +31,14 @@ void PatternSearching::search() {
             do {
                 string word;
                 iss >> word;
-                if (minDfa.accepts(word)){
-                    string positie = "(" + to_string(x) + ", " + to_string(y) + ")";
-                    posities.push_back(positie);
-                    x+=1;
-                }
-                else{
-                    x += 1;
+                if (!word.empty()) {
+                    if (minDfa.accepts(word)) {
+                        string positie = "(" + to_string(x) + ", " + to_string(y) + ")";
+                        posities.push_back(positie);
+                        x += 1;
+                    } else {
+                        x += 1;
+                    }
                 }
 
             } while (iss);
@@ -72,13 +73,14 @@ void PatternSearching::search() {
             do {
                 string word;
                 iss >> word;
-                if (product.productAutomaat().accepts(word)){
-                    string positie = "(" + to_string(x) + ", " + to_string(y) + ")";
-                    posities.push_back(positie);
-                    x+=1;
-                }
-                else{
-                    x += 1;
+                if (!word.empty()) {
+                    if (product.productAutomaat().accepts(word)) {
+                        string positie = "(" + to_string(x) + ", " + to_string(y) + ")";
+                        posities.push_back(positie);
+                        x += 1;
+                    } else {
+                        x += 1;
+                    }
                 }
 
             } while (iss);
