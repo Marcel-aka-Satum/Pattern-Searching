@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iomanip>
 #include "json.hpp"
+#include "contract.h"
 #include <string>
 #include <utility>
 #include <vector>

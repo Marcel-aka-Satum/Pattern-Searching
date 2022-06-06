@@ -3,6 +3,7 @@
 #include "iostream"
 #include "iomanip"
 #include "algorithm"
+#include "contract.h"
 #include "DFA.h"
 #include "set"
 #include "fstream"

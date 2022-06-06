@@ -3,6 +3,7 @@
 #include "iostream"
 #include "ENFA.h"
 #include "string"
+#include "contract.h"
 #include "json.hpp"
 #include "fstream"
 #include "set"

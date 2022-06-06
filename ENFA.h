@@ -4,6 +4,7 @@
 #include "DFA.h"
 #include "unordered_set"
 #include "vector"
+#include "contract.h"
 #include "algorithm"
 #include "queue"
 #include "iomanip"
