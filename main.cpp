@@ -1,14 +1,10 @@
-//
-// Created by aaditya on 06.05.22.
-//
-#include "ENFA.h"
-#include "RE.h"
-#include "DFA.h"
-#include "PatternSearching.h"
-using namespace std;
+#include "mainwindow.h"
+#include <QApplication>
 
-int main(){
-    PatternSearching p("test.txt","dummy", "m", false);
-    p.search();
-    return 0;
+int main(int argc, char *argv[])
+{
+    QApplication a(argc, argv);
+    MainWindow w;
+    w.show();
+    return a.exec();
 }
