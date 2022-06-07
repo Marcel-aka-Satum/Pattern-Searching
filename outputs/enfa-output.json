@@ -1,0 +1,1 @@
+{"alphabet":["m"],"eps":"e","states":[{"accepting":false,"name":"0","starting":true},{"accepting":true,"name":"1","starting":false}],"transitions":[{"from":"0","input":"m","to":"1"}],"type":"ENFA"}
