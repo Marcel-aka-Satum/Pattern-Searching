@@ -37,7 +37,6 @@ public:
     //functions for regex to enfa
     vector<string> tryEpsilon(vector<string> state1);
     bool accept(vector<string> new_state);
-    bool accepts(string input);
     //REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling nextNodes");
     void nextNodes(vector<string>* node, string input);
     //REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling tryEps");
