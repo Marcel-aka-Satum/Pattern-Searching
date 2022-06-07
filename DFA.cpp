@@ -91,64 +91,145 @@ void DFA::print(){
     REQUIRE(j.empty() == false, "json j is leeg");
     cout << setw(4) << j << endl;
 }
+
+
+
+
+
+
+
+
+void DFA::addToVector(vector<string>& woorden, string temp){
+    woorden.push_back(temp);
+}
+
+
+
 bool DFA::accepts(const string &s) {
-    REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling accepts");
+    REQUIRE(this->properlyInitialized(), "DFA wasn't initialized when calling accepts");
     REQUIRE(s.size() > 0, "de string mag niet leeg zijn.");
     bool states[j["states"].size()];
     string currentState;
     string beginState;
     // hier kijk ik wat mijn starting state is en zet ik dat state true en geef dat door aan de var currentState
-    for(int i = 0; i < j["states"].size(); i++){
-        if (j["states"][i]["starting"] == true){
+    for (int i = 0; i < j["states"].size(); i++) {
+        if (j["states"][i]["starting"] == true) {
             states[i] = true;
             currentState = j["states"][i]["name"];
             beginState = j["states"][i]["name"];
         }
     }
     // hier kijk ik of de char in de alphabet zit, zoniet dn zet ik de curr state nr een dead state.
+    string chr;
+    vector<string> mogelijkeWoorden;
+    int counter = 0;
     for (auto i: s) {
+        counter += 1;
         string inp;
         inp += i;
         bool inAlphabet = false;
-        for (const auto & l : j["alphabet"]){
-            if (inp == l){
+        for (const auto &l: j["alphabet"]) {
+            if (inp == l) {
                 inAlphabet = true;
-                if (currentState == "DEAD STATE"){
+                if (currentState == "DEAD STATE") {
                     currentState = beginState;
                 }
             }
         }
         if (inAlphabet) {
-            // hier kijk ik welke transitie het moet doen, door te kijken wat de currentState is en de input.
-            for (auto k: j["transitions"]) {
-                if ((k["from"] == currentState) and (k["input"] == inp)) {
-                    currentState = k["to"];
-                    for (int h = 0; h < j["states"].size(); h++) {
-                        if (j["states"][h]["name"] == currentState) {
-                            if (j["states"][h]["accepting"] == true) {
-                                return true;
-                            }
-                        }
-                    }
-                    break;
-                }
+            chr += inp;
+        } else {
+            if (!chr.empty()) {
+                mogelijkeWoorden.push_back(chr);
+                chr = "";
             }
+            currentState = "DEAD STATE";
         }
-        else{
-            currentState="DEAD STATE";
+        if (counter == s.size() and !chr.empty()) {
+            mogelijkeWoorden.push_back(chr);
+            chr = "";
         }
     }
-    // hier check ik waar mijn currentState is geindigd en of dat state een accepting state is, zoja return ik true anders false.
-    for(int i = 0; i < j["states"].size(); i++){
-        if (j["states"][i]["name"] == currentState){
-            if (j["states"][i]["accepting"] == true)
-                return true;
-            else
-                return false;
+
+    vector<string> dupe;
+    bool stoppen = false;
+    while (!stoppen) {
+        string currState;
+        currState = beginState;
+        for (auto i: mogelijkeWoorden) {
+            if (i.size() == 1) {
+                for (auto k: j["transitions"]) {
+                    if (k["from"] == currState and k["input"] == i) {
+                        currState = k["to"];
+                        break;
+                    }
+                }
+                for (auto o: j["states"]) {
+                    if (o["name"] == currState) {
+                        if (o["accepting"] == true) {
+                            return true;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+            } else if (i.size() > 1) {
+                for (auto k: i) {
+                    string str;
+                    str += k;
+                    for (auto l: j["transitions"]) {
+                        if (l["from"] == currState and l["input"] == str) {
+                            currState = l["to"];
+                            break;
+                        }
+                    }
+                }
+
+                for (auto o: j["states"]) {
+                    if (o["name"] == currState) {
+                        if (o["accepting"] == true) {
+                            return true;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+                string tempr;
+                tempr += i[0];
+                dupe.push_back(tempr);
+                tempr = "";
+                for (int o = 1; o < i.size(); o++) {
+                    tempr += i[o];
+                }
+                dupe.push_back(tempr);
+
+            }
         }
+
+        mogelijkeWoorden.clear();
+        if(!dupe.empty()){
+            for(auto p : dupe){
+             mogelijkeWoorden.push_back(p);
+            }
+            dupe.clear();
+        }else{
+            stoppen = true;
+        }
+
+
     }
     return false;
 }
+
+
+
+
+
+
+
+
 
 // functions for product automaat
 DFA::DFA(json v, bool test) {

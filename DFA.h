@@ -59,6 +59,7 @@ public:
     DFA(const string& dfa);
     void print();
     bool accepts(const string& s);
+    void addToVector(vector<string>& woorden, string temp);
 
     //functions for product automaat
 
