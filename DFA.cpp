@@ -154,9 +154,9 @@ bool DFA::accepts(const string &s) {
     vector<string> dupe;
     bool stoppen = false;
     while (!stoppen) {
-        string currState;
-        currState = beginState;
         for (auto i: mogelijkeWoorden) {
+            string currState;
+            currState = beginState;
             if (i.size() == 1) {
                 for (auto k: j["transitions"]) {
                     if (k["from"] == currState and k["input"] == i) {
