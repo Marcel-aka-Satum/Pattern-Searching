@@ -65,9 +65,6 @@ public:
     DFA(json v, bool test);
     DFA(const DFA& a, const DFA& b, bool c);
     DFA productAutomaat();
-    void doUnie();
-    void doDoorsnede();
-
     virtual ~DFA();
 
     //function tfa

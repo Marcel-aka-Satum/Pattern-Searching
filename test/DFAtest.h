@@ -27,4 +27,6 @@ TEST_F(DFAtest, testProperlyInitialized){
     ASSERT_EQ(temp, dfa1->properlyInitialized());
 }
 
+
+
 #endif //PATTERN_SEARCHING_DFATEST_H

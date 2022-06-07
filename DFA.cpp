@@ -21,6 +21,8 @@ DFA::DFA() {
 
 // common functions
 DFA::DFA(const string& dfa){
+    _initCheck = this;
+    REQUIRE(dfa.size() > 0, "dfa string is leeg");
     ifstream input(dfa);
     input >> j;
     type = j["type"]; // Get type
@@ -82,15 +84,16 @@ DFA::DFA(const string& dfa){
         }
 //        cout << "Transition from " << sPtr->name << " to " << ePtr->name << " on " << symb << endl;
     }
-    _initCheck = this;
     ENSURE(properlyInitialized(), "constructor must end in properlyInitialized state");
 }
 void DFA::print(){
     REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling print");
+    REQUIRE(j.empty() == false, "json j is leeg");
     cout << setw(4) << j << endl;
 }
 bool DFA::accepts(const string &s) {
     REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling accepts");
+    REQUIRE(s.size() > 0, "de string mag niet leeg zijn.");
     bool states[j["states"].size()];
     string currentState;
     string beginState;
@@ -145,8 +148,8 @@ bool DFA::accepts(const string &s) {
         }
     }
     return false;
-
 }
+
 // functions for product automaat
 DFA::DFA(json v, bool test) {
     _initCheck = this;
@@ -164,6 +167,10 @@ DFA::DFA(const DFA &a, const DFA &b, bool c) {
 
 DFA DFA::productAutomaat() {
     REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling productAutomaat");
+    REQUIRE(dfa1.empty() == false, "dfa1 heeft geen informatie");
+    REQUIRE(dfa2.empty() == false, "dfa2 heeft geen informatie");
+    REQUIRE(doorsnede_unie == true or doorsnede_unie == false, "doorsnede_unie heeft geen bool waarde meegekregen");
+
     json product;
 
     vector<json> states;

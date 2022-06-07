@@ -8,7 +8,7 @@
 using namespace std;
 
 int main(){
-    PatternSearching p("test.txt","ab");
+    PatternSearching p("test.txt","dummy", "m", false);
     p.search();
     return 0;
 }
