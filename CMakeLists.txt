@@ -15,6 +15,6 @@ set(DEBUG_SOURCE_FILES testMain.cpp ${RELEASE_SOURCE_FILES} test/REtest.h test/E
 
 add_executable(PS main.cpp ${RELEASE_SOURCE_FILES} )
 
-add_executable(PS_debug  ${DEBUG_SOURCE_FILES} )
+add_executable(PS_debug  ${DEBUG_SOURCE_FILES})
 
 target_link_libraries(PS_debug gtest)

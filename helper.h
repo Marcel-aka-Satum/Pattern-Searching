@@ -8,18 +8,13 @@
 #include "string"
 #include "sys/stat.h"
 #include "fstream"
-
-namespace Helpers {
-    double stod(std::string s);
-
-    std::string to_string(double d);
+using namespace std;
 
 
-    bool DirectoryExists(const std::string &dirname);
+bool DirectoryExists(const std::string &dirname);
 
-    bool FileExists(const std::string &dirname);
-
-}
+bool FileExists(const std::string &dirname);
+bool FileCompare(const string leftFileName, const std::string rightFileName);
 
 
 #endif //PATTERN_SEARCHING_HELPER_H
