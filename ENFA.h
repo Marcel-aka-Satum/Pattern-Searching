@@ -63,6 +63,12 @@ public:
 
     bool properlyInitialized() const;
 
+    ENFA* get_initCheck();
+    //REQUIRE(this->properlyInitialized(), "ENFA wasn't initialized when calling get_initCheck");
+
+    void set_initCheck(ENFA* i);
+    //REQUIRE(this->properlyInitialized(), "ENFA wasn't initialized when calling set_initCheck");
+
 };
 
 

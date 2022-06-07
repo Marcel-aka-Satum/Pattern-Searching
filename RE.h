@@ -43,6 +43,7 @@ public:
 
     ENFA toENFA();
 
+    void print();
     void addTransition(int from, int to, string input);
     void sum(block* R, block* S);
     void concat(block* R, block* S);
@@ -62,6 +63,12 @@ public:
     void buildAlph();
     static bool noOperators(string const &expression);
     bool properlyInitialized() const;
+
+    RE* get_initCheck();
+    //REQUIRE(this->properlyInitialized(), "RE wasn't initialized when calling get_initCheck");
+
+    void set_initCheck(RE* i);
+    //REQUIRE(this->properlyInitialized(), "RE wasn't initialized when calling set_initCheck");
 
 };
 

@@ -23,4 +23,13 @@ TEST_F(REtest,test_variable){
     ASSERT_EQ(1,re1->getStates());
 }
 
+TEST_F(REtest, testProperlyInitialized){
+    RE* re1 = new RE;
+    ASSERT_EQ(true, re1->properlyInitialized());
+    RE* re2 = new RE;
+    re1->set_initCheck(re2);
+    bool temp = false;
+    ASSERT_EQ(temp, re1->properlyInitialized());
+}
+
 #endif //PATTERN_SEARCHING_RETEST_H

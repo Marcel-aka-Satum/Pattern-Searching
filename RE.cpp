@@ -268,3 +268,17 @@ RE::RE() {
 bool RE::properlyInitialized() const {
     return __initCheck == this;
 }
+
+RE *RE::get_initCheck() {
+    REQUIRE(this->properlyInitialized(), "RE wasn't initialized when calling get_initCheck");
+    return _initCheck;
+}
+
+void RE::set_initCheck(RE* i) {
+    REQUIRE(this->properlyInitialized(), "RE wasn't initialized when calling set_initCheck");
+    _initCheck = i;
+}
+
+void print(){
+    cout << regex << endl;
+}
