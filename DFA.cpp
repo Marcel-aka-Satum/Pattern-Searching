@@ -21,6 +21,7 @@ DFA::DFA() {
 
 // common functions
 DFA::DFA(const string& dfa){
+    //Deze constructor krijgt een string mee en gaat die in json j zetten.
     _initCheck = this;
     REQUIRE(dfa.size() > 0, "dfa string is leeg");
     ifstream input(dfa);
@@ -87,25 +88,15 @@ DFA::DFA(const string& dfa){
     ENSURE(properlyInitialized(), "constructor must end in properlyInitialized state");
 }
 void DFA::print(){
+    //Deze functie gaat een string representatie van onze dfa, enfa etc printen in onze console.
     REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling print");
     REQUIRE(j.empty() == false, "json j is leeg");
     cout << setw(4) << j << endl;
 }
 
 
-
-
-
-
-
-
-void DFA::addToVector(vector<string>& woorden, string temp){
-    woorden.push_back(temp);
-}
-
-
-
 bool DFA::accepts(const string &s) {
+    //Deze functie gaat kijken of dat de pattern die wij hebben gegeven in de string aanwezig is.
     REQUIRE(this->properlyInitialized(), "DFA wasn't initialized when calling accepts");
     REQUIRE(s.size() > 0, "de string mag niet leeg zijn.");
     bool states[j["states"].size()];
@@ -224,21 +215,16 @@ bool DFA::accepts(const string &s) {
 }
 
 
-
-
-
-
-
-
-
 // functions for product automaat
 DFA::DFA(json v, bool test) {
+    //
     _initCheck = this;
     j = std::move(v);
     ENSURE(properlyInitialized(), "constructor must end in properlyInitialized state");
 }
 
 DFA::DFA(const DFA &a, const DFA &b, bool c) {
+    //Deze constructor gebruiken wij voor onze product automaat.
     _initCheck = this;
     dfa1 = a.j;
     dfa2 = b.j;
@@ -247,6 +233,7 @@ DFA::DFA(const DFA &a, const DFA &b, bool c) {
 }
 
 DFA DFA::productAutomaat() {
+    //Deze functie gaat de unie van 2 dfa's pakken.
     REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling productAutomaat");
     REQUIRE(dfa1.empty() == false, "dfa1 heeft geen informatie");
     REQUIRE(dfa2.empty() == false, "dfa2 heeft geen informatie");
@@ -458,6 +445,7 @@ DFA DFA::productAutomaat() {
 
 //function tfa
 DFA DFA::minimize() {
+    //Deze functie gaat een dfa minimaliseren aan de hand van de table filling algorithm.
     REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling minimize");
 
     //elke state naam wordt in deze vector gezet.

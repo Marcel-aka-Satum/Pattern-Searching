@@ -55,28 +55,39 @@ public:
     //default constructor
     DFA();
 
-    //common functions
+    //common functions:
+    //Deze constructor krijgt een string mee en gaat die in json j zetten.
     DFA(const string& dfa);
-    void print();
-    bool accepts(const string& s);
-    void addToVector(vector<string>& woorden, string temp);
 
-    //functions for product automaat
+    //Deze functie gaat een string representatie van onze dfa, enfa etc printen in onze console.
+    void print();
+
+    //Deze functie gaat kijken of dat de pattern die wij hebben gegeven in de string aanwezig is.
+    bool accepts(const string& s);
+
+    //functions for product automaat:
 
     DFA(json v, bool test);
+
+    //Deze constructor gebruiken wij voor onze product automaat.
     DFA(const DFA& a, const DFA& b, bool c);
+
+    //Deze functie gaat de unie van 2 dfa's pakken.
     DFA productAutomaat();
+
+    //destructor
     virtual ~DFA();
 
-    //function tfa
-    void printTable();
+    //function tfa:
+    //Deze functie gaat een dfa minimaliseren aan de hand van de table filling algorithm.
     DFA minimize();
 
-    //function state elimination
+    //function state elimination:
     RE toRE();
     vector<State*> sortStates(const vector<State*>& states);
 
-    //getters
+    //getters:
+
     const string &getReg();
 
     unsigned long long getStates();
