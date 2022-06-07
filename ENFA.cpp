@@ -6,7 +6,7 @@
 
 using namespace std;
 using json = nlohmann::json;
-
+//constructor
 ENFA::ENFA(const string& p) {
     __initCheck = this;
     ifstream input(p);
@@ -15,7 +15,7 @@ ENFA::ENFA(const string& p) {
     ENSURE(properlyInitialized(), "Constructor must end in properlyInitialized state");
 }
 
-
+//searches the node
 void ENFA::nextNodes(vector<string>* nodes, string input){
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling nextNodes");
     vector<string> new_states;
@@ -27,7 +27,7 @@ void ENFA::nextNodes(vector<string>* nodes, string input){
     }
     *nodes = new_states;
 }
-
+//tries epsilon for states
 void ENFA::tryEps(vector<string>* nodes){
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling tryEps");
     for(auto node : *nodes){
@@ -41,7 +41,7 @@ void ENFA::tryEps(vector<string>* nodes){
     return;
 }
 
-
+//looks if it accepts the enfa
 bool ENFA::accepts(string input){
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling accepts");
     vector<string> states = {to_string(0)};
@@ -59,6 +59,7 @@ bool ENFA::accepts(string input){
     }
     return(nrtimes==1);
 }
+//sees if state is accepting or not
 bool ENFA::accept(vector<string> new_state) {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling accept");
     bool accepting = false;
@@ -70,7 +71,7 @@ bool ENFA::accept(vector<string> new_state) {
     }
     return accepting;
 }
-
+//epsilon for states
 vector<string> ENFA::tryEpsilon(vector<string> state1){
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling tryEpsilon");
     vector<string> new_state = state1;
@@ -134,12 +135,12 @@ bool ENFA::accept(const string &s) {
     return false;
 
 }
-
+//prints the enfa
 void ENFA::print() {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling print");
     cout << setw(4) << j << endl;
 }
-
+//it transers Enfa to dfa
 DFA ENFA::toDFA() {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling toDFA");
     vector<string> startState;
@@ -177,6 +178,7 @@ DFA ENFA::toDFA() {
     DFA dfaa("dfa-output.json");
     return dfaa;
 }
+//finds transitions en states
 void ENFA::subsetConstruction(vector<string> const &state) {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling subsetConstruction");
     vector<vector<string>> states;
@@ -195,6 +197,7 @@ void ENFA::subsetConstruction(vector<string> const &state) {
         subsetConstruction(s);
     }
 }
+//transfers vec to string
 string ENFA::vecToString(vector<string> new_state) {
     vector<int> temp;
     vector<string> tempr;
@@ -227,6 +230,7 @@ string ENFA::vecToString(vector<string> new_state) {
         return name;
     }
 }
+//finds the transitions
 vector<string> ENFA::findTransition(vector<string> state, string input) {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling findTransition");
     vector<string> new_state;
@@ -238,6 +242,7 @@ vector<string> ENFA::findTransition(vector<string> state, string input) {
     }
     return new_state;
 }
+//adds the transitions to dfa
 void ENFA::addTransition(string from, string to, string input) {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling addTransition");
     dfa["transitions"].push_back(
@@ -245,6 +250,7 @@ void ENFA::addTransition(string from, string to, string input) {
              {"to",    to},
              {"input", input}});
 }
+//adds states to dfa
 void ENFA::addState(string name, bool starting, bool accepting) {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling addState");
     dfa["states"].push_back(
@@ -252,12 +258,12 @@ void ENFA::addState(string name, bool starting, bool accepting) {
              {"starting",  starting},
              {"accepting", accepting}});
 }
-
+//returns the epsilon
 const string &ENFA::getEps() const {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling getEps");
     return eps;
 }
-
+//returns size of allstates
 int ENFA::getAllStates() const {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling getAllStates");
     return allStates.size();
