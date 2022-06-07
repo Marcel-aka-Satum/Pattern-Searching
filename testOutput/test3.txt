@@ -1,0 +1,7 @@
+voor onze groepsgedeelte gaan wij pattern searching maken.
+wij hebben voor deze project gekozen omdat dit vaak gebruikt wordt in de informatica wereld.
+de algorithm krijgt twee inputs de eerste input bevat een bestand met daarin de tekst en als tweede input de regex van de pattern.
+met die regex gaan wij dat omzetten naar een nfa aan de hand van een algorithm.
+die nfa gaan wij omzetten naar dfa aan de hand van ssc algorithm.
+hierna kunnen deze dfa minimaliseren met de table filling algorithm.
+hierna gaan wij onze pattern searching algorithm om de pattern te zoeken aan de hand van die dfa.
