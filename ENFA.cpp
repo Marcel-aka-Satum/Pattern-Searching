@@ -40,25 +40,6 @@ void ENFA::tryEps(vector<string>* nodes){
     }
     return;
 }
-
-//looks if it accepts the enfa
-bool ENFA::accepts(string input){
-    REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling accepts");
-    vector<string> states = {to_string(0)};
-    tryEps(&states);
-    for(auto c : input){
-        string character(1, c);
-        nextNodes(&states, character);
-        tryEps(&states);
-    }
-    int nrtimes = 0;
-    for(int i = 0; i < states.size(); i++){
-        if(to_string(j["states"].size()-1) == states[i]){
-            nrtimes++;
-        }
-    }
-    return(nrtimes==1);
-}
 //sees if state is accepting or not
 bool ENFA::accept(vector<string> new_state) {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling accept");
