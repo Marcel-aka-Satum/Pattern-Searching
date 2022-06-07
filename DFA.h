@@ -29,13 +29,13 @@ struct deadState : public State {
     bool used = false;
 };
 class RE;
+
 class DFA {
 private:
     json j;
     json dfa1;
     json dfa2;
     bool doorsnede_unie;
-    bool unieOrDoorsnede;
     //TFA variable
     json dfa;
     //state elimination
@@ -46,7 +46,15 @@ private:
     vector<char> alphabet;
     string type;
 
+    DFA* _initCheck;
+
 public:
+    bool properlyInitialized();
+
+
+    //default constructor
+    DFA();
+
     //common functions
     DFA(const string& dfa);
     void print();
@@ -68,7 +76,27 @@ public:
 
     //function state elimination
     RE toRE();
-    vector<State*> sortStates(const vector<State*>& states) const;
+    vector<State*> sortStates(const vector<State*>& states);
+
+    //getters
+    const string &getReg();
+
+    unsigned long long getStates();
+
+    unsigned long long getAcceptingStates();
+
+    State *getStartState();
+
+    unsigned long long getAlphabet();
+
+    const string &getType();
+
+    DFA* get_initCheck();
+    //REQUIRE(this->properlyInitialized(), "DFA wasn't initialized when calling get_initCheck");
+
+    void set_initCheck(DFA* i);
+    //REQUIRE(this->properlyInitialized(), "DFA wasn't initialized when calling set_initCheck");
+
 };
 
 #endif //SUBSET_CONSTRUCTION_DFA_H

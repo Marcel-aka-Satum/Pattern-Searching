@@ -3,10 +3,21 @@
 #include <fstream>
 #include "json.hpp"
 #include "RE.h"
+#include "contract.h"
 
 using namespace std;
 
 using json = nlohmann::json;
+
+bool DFA::properlyInitialized() {
+    return _initCheck == this;
+}
+
+DFA::DFA() {
+    _initCheck = this;
+    ENSURE(properlyInitialized(), "constructor must end in properlyInitialized state");
+}
+
 
 // common functions
 DFA::DFA(const string& dfa){
@@ -71,12 +82,15 @@ DFA::DFA(const string& dfa){
         }
 //        cout << "Transition from " << sPtr->name << " to " << ePtr->name << " on " << symb << endl;
     }
+    _initCheck = this;
+    ENSURE(properlyInitialized(), "constructor must end in properlyInitialized state");
 }
 void DFA::print(){
+    REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling print");
     cout << setw(4) << j << endl;
 }
 bool DFA::accepts(const string &s) {
-
+    REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling accepts");
     bool states[j["states"].size()];
     string currentState;
     string beginState;
@@ -135,22 +149,21 @@ bool DFA::accepts(const string &s) {
 }
 // functions for product automaat
 DFA::DFA(json v, bool test) {
+    _initCheck = this;
     j = std::move(v);
+    ENSURE(properlyInitialized(), "constructor must end in properlyInitialized state");
 }
 
 DFA::DFA(const DFA &a, const DFA &b, bool c) {
+    _initCheck = this;
     dfa1 = a.j;
     dfa2 = b.j;
     doorsnede_unie = c;
-
-    unieOrDoorsnede = c;
-    if (c)
-        doDoorsnede();
-    else
-        doUnie();
+    ENSURE(properlyInitialized(), "constructor must end in properlyInitialized state");
 }
 
 DFA DFA::productAutomaat() {
+    REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling productAutomaat");
     json product;
 
     vector<json> states;
@@ -355,372 +368,16 @@ DFA DFA::productAutomaat() {
 
 }
 
-
-
-
-void DFA::doUnie() {
-    vector<string> allStates;
-    vector<json> allTransitions;
-    for (int i = 0; i < dfa1["states"].size(); ++i) {
-        for (int k = 0; k < dfa2["states"].size(); ++k) {
-            string newState = "(";
-            newState += dfa1["states"][i]["name"];
-            newState += ",";
-            newState += dfa2["states"][k]["name"];
-            newState += ")";
-            allStates.push_back(newState);
-        }
-    }
-    for (int i = 0; i < dfa1["alphabet"].size(); ++i) {
-        for (int k = 0; k < allStates.size(); ++k) {
-            json t;
-            string s1 (1,allStates[k][1]);
-            string s2 (1, allStates[k][3]);
-            string toState = "(";
-            for (int l = 0; l < dfa1["transitions"].size(); ++l) {
-                if (dfa1["transitions"][l]["from"] == s1 and dfa1["transitions"][l]["input"] == dfa1["alphabet"][i]){
-                    toState += dfa1["transitions"][l]["to"];
-                    toState += ",";
-                }
-            }
-            for (int l = 0; l < dfa2["transitions"].size(); ++l) {
-                if (dfa2["transitions"][l]["from"] == s2 and dfa2["transitions"][l]["input"] == dfa1["alphabet"][i]){
-                    toState += dfa2["transitions"][l]["to"];
-                    toState += ")";
-                }
-            }
-            t["from"] = allStates[k];
-            t["to"] = toState;
-            t["input"] = dfa1["alphabet"][i];
-            allTransitions.push_back(t);
-        }
-    }
-    vector<string> unreachableStates;
-    string startingState = "(";
-    for (int i = 0; i < dfa1["states"].size(); ++i) {
-        if (dfa1["states"][i]["starting"] == true){
-            startingState += dfa1["states"][i]["name"];
-            startingState += ",";
-        }
-    }
-    for (int i = 0; i < dfa2["states"].size(); ++i) {
-        if (dfa2["states"][i]["starting"] == true){
-            startingState += dfa2["states"][i]["name"];
-            startingState += ")";
-        }
-    }
-    int count = dfa1["states"].size() * dfa2["states"].size() * dfa1["alphabet"].size();
-    for (int l = 0; l < count; ++l) {
-        for (int i = 0; i < allStates.size(); ++i) {
-            if (allStates[i] != startingState) {
-                bool isUnreachable = true;
-                for (int k = 0; k < allTransitions.size(); ++k) {
-                    if (allTransitions[k]["to"] == allStates[i]) {
-                        isUnreachable = false;
-                    }
-                }
-                if (isUnreachable) {
-                    unreachableStates.push_back(allStates[i]);
-                    allStates.erase(allStates.begin() + i);
-                }
-            }
-        }
-        for (int i = 0; i < unreachableStates.size(); ++i) {
-            for (int k = 0; k < allTransitions.size(); ++k) {
-                if (unreachableStates[i] == allTransitions[k]["from"]){
-                    allTransitions.erase(allTransitions.begin() + k);
-                }
-            }
-        }
-    }
-    for (int i = 0; i < allStates.size(); ++i) {
-        string temp;
-        bool selfLoop = false;
-        for (int k = 0; k < allTransitions.size(); ++k) {
-            if (allTransitions[k]["from"] == allStates[i]){
-                temp = allTransitions[k]["to"];
-            }
-        }
-        for (int k = 0; k < allTransitions.size(); ++k) {
-            if (allTransitions[k]["from"] == temp){
-                if (allTransitions[k]["to"] == allStates[i]){
-                    selfLoop = true;
-                }
-            }
-        }
-        if (selfLoop){
-            bool isUnreachable = true;
-            for (int k = 0; k < allTransitions.size(); ++k) {
-                if (allTransitions[k]["to"] == allStates[i] and allTransitions[k]["from"] != temp){
-                    isUnreachable = false;
-                }
-            }
-            if (isUnreachable){
-                unreachableStates.push_back(allStates[i]);
-                allStates.erase(allStates.begin() + i);
-                for (int k = 0; k < allStates.size(); ++k) {
-                    if (allStates[k] == temp){
-                        unreachableStates.push_back(allStates[k]);
-                        allStates.erase(allStates.begin() + k);
-                        break;
-                    }
-                }
-            }
-            break;
-        }
-    }
-    for (int i = 0; i < unreachableStates.size(); ++i) {
-        for (int k = 0; k < allTransitions.size(); ++k) {
-            if (unreachableStates[i] == allTransitions[k]["from"]){
-                allTransitions.erase(allTransitions.begin() + k);
-            }
-        }
-    }
-    for (int l = 0; l < count; ++l) {
-        for (int i = 0; i < allStates.size(); ++i) {
-            if (allStates[i] != startingState) {
-                bool isUnreachable = true;
-                for (int k = 0; k < allTransitions.size(); ++k) {
-                    if (allTransitions[k]["to"] == allStates[i]) {
-                        isUnreachable = false;
-                    }
-                }
-                if (isUnreachable) {
-                    unreachableStates.push_back(allStates[i]);
-                    allStates.erase(allStates.begin() + i);
-                }
-            }
-        }
-        for (int i = 0; i < unreachableStates.size(); ++i) {
-            for (int k = 0; k < allTransitions.size(); ++k) {
-                if (unreachableStates[i] == allTransitions[k]["from"]){
-                    allTransitions.erase(allTransitions.begin() + k);
-                }
-            }
-        }
-    }
-    vector<json> states;
-    for (int i = 0; i < allStates.size(); ++i) {
-        string s1(1,allStates[i][1]);
-        string s2(1, allStates[i][3]);
-        json s;
-        bool starting = false;
-        bool accepting = false;
-        if (allStates[i] == startingState){
-            starting = true;
-        }
-        for (int k = 0; k < dfa1["states"].size(); ++k) {
-            if (dfa1["states"][k]["name"] == s1){
-                accepting = dfa1["states"][k]["accepting"];
-                break;
-            }
-        }
-        if (!accepting) {
-            for (int k = 0; k < dfa2["states"].size(); ++k) {
-                if (dfa2["states"][k]["name"] == s2) {
-                    accepting = dfa2["states"][k]["accepting"];
-                    break;
-                }
-            }
-        }
-        s["name"] = allStates[i];
-        s["starting"] = starting;
-        s["accepting"] = accepting;
-        states.push_back(s);
-    }
-    j["type"] = "DFA";
-    j["alphabet"] = dfa1["alphabet"];
-    j["states"] = states;
-    j["transitions"] = allTransitions;
-}
-
-void DFA::doDoorsnede() {
-    vector<string> allStates;
-    vector<json> allTransitions;
-    for (int i = 0; i < dfa1["states"].size(); ++i) {
-        for (int k = 0; k < dfa2["states"].size(); ++k) {
-            string newState = "(";
-            newState += dfa1["states"][i]["name"];
-            newState += ",";
-            newState += dfa2["states"][k]["name"];
-            newState += ")";
-            allStates.push_back(newState);
-        }
-    }
-    for (int i = 0; i < dfa1["alphabet"].size(); ++i) {
-        for (int k = 0; k < allStates.size(); ++k) {
-            json t;
-            string s1 (1,allStates[k][1]);
-            string s2 (1, allStates[k][3]);
-            string toState = "(";
-            for (int l = 0; l < dfa1["transitions"].size(); ++l) {
-                if (dfa1["transitions"][l]["from"] == s1 and dfa1["transitions"][l]["input"] == dfa1["alphabet"][i]){
-                    toState += dfa1["transitions"][l]["to"];
-                    toState += ",";
-                }
-            }
-            for (int l = 0; l < dfa2["transitions"].size(); ++l) {
-                if (dfa2["transitions"][l]["from"] == s2 and dfa2["transitions"][l]["input"] == dfa1["alphabet"][i]){
-                    toState += dfa2["transitions"][l]["to"];
-                    toState += ")";
-                }
-            }
-            t["from"] = allStates[k];
-            t["to"] = toState;
-            t["input"] = dfa1["alphabet"][i];
-            allTransitions.push_back(t);
-        }
-    }
-    vector<string> unreachableStates;
-    string startingState = "(";
-    for (int i = 0; i < dfa1["states"].size(); ++i) {
-        if (dfa1["states"][i]["starting"] == true){
-            startingState += dfa1["states"][i]["name"];
-            startingState += ",";
-        }
-    }
-    for (int i = 0; i < dfa2["states"].size(); ++i) {
-        if (dfa2["states"][i]["starting"] == true){
-            startingState += dfa2["states"][i]["name"];
-            startingState += ")";
-        }
-    }
-    int count = dfa1["states"].size() * dfa2["states"].size() * dfa1["alphabet"].size();
-    for (int l = 0; l < count; ++l) {
-        for (int i = 0; i < allStates.size(); ++i) {
-            if (allStates[i] != startingState) {
-                bool isUnreachable = true;
-                for (int k = 0; k < allTransitions.size(); ++k) {
-                    if (allTransitions[k]["to"] == allStates[i]) {
-                        isUnreachable = false;
-                    }
-                }
-                if (isUnreachable) {
-                    unreachableStates.push_back(allStates[i]);
-                    allStates.erase(allStates.begin() + i);
-                }
-            }
-        }
-        for (int i = 0; i < unreachableStates.size(); ++i) {
-            for (int k = 0; k < allTransitions.size(); ++k) {
-                if (unreachableStates[i] == allTransitions[k]["from"]){
-                    allTransitions.erase(allTransitions.begin() + k);
-                }
-            }
-        }
-    }
-    for (int i = 0; i < allStates.size(); ++i) {
-        string temp;
-        bool selfLoop = false;
-        for (int k = 0; k < allTransitions.size(); ++k) {
-            if (allTransitions[k]["from"] == allStates[i]){
-                temp = allTransitions[k]["to"];
-            }
-        }
-        for (int k = 0; k < allTransitions.size(); ++k) {
-            if (allTransitions[k]["from"] == temp){
-                if (allTransitions[k]["to"] == allStates[i]){
-                    selfLoop = true;
-                }
-            }
-        }
-        if (selfLoop){
-            bool isUnreachable = true;
-            for (int k = 0; k < allTransitions.size(); ++k) {
-                if (allTransitions[k]["to"] == allStates[i] and allTransitions[k]["from"] != temp){
-                    isUnreachable = false;
-                }
-            }
-            if (isUnreachable){
-                unreachableStates.push_back(allStates[i]);
-                allStates.erase(allStates.begin() + i);
-                for (int k = 0; k < allStates.size(); ++k) {
-                    if (allStates[k] == temp){
-                        unreachableStates.push_back(allStates[k]);
-                        allStates.erase(allStates.begin() + k);
-                        break;
-                    }
-                }
-            }
-            break;
-        }
-    }
-    for (int i = 0; i < unreachableStates.size(); ++i) {
-        for (int k = 0; k < allTransitions.size(); ++k) {
-            if (unreachableStates[i] == allTransitions[k]["from"]){
-                allTransitions.erase(allTransitions.begin() + k);
-            }
-        }
-    }
-    for (int l = 0; l < count; ++l) {
-        for (int i = 0; i < allStates.size(); ++i) {
-            if (allStates[i] != startingState) {
-                bool isUnreachable = true;
-                for (int k = 0; k < allTransitions.size(); ++k) {
-                    if (allTransitions[k]["to"] == allStates[i]) {
-                        isUnreachable = false;
-                    }
-                }
-                if (isUnreachable) {
-                    unreachableStates.push_back(allStates[i]);
-                    allStates.erase(allStates.begin() + i);
-                }
-            }
-        }
-        for (int i = 0; i < unreachableStates.size(); ++i) {
-            for (int k = 0; k < allTransitions.size(); ++k) {
-                if (unreachableStates[i] == allTransitions[k]["from"]){
-                    allTransitions.erase(allTransitions.begin() + k);
-                }
-            }
-        }
-    }
-    vector<json> states;
-    for (int i = 0; i < allStates.size(); ++i) {
-        string s1(1,allStates[i][1]);
-        string s2(1, allStates[i][3]);
-        json s;
-        bool starting = false;
-        bool accepting = false;
-        if (allStates[i] == startingState){
-            starting = true;
-        }
-        for (int k = 0; k < dfa1["states"].size(); ++k) {
-            if (dfa1["states"][k]["name"] == s1){
-                accepting = dfa1["states"][k]["accepting"];
-                break;
-            }
-        }
-        if (accepting) {
-            for (int k = 0; k < dfa2["states"].size(); ++k) {
-                if (dfa2["states"][k]["name"] == s2) {
-                    accepting = dfa2["states"][k]["accepting"];
-                    break;
-                }
-            }
-        }
-        s["name"] = allStates[i];
-        s["starting"] = starting;
-        s["accepting"] = accepting;
-        states.push_back(s);
-    }
-    j["type"] = "DFA";
-    j["alphabet"] = dfa1["alphabet"];
-    j["states"] = states;
-    j["transitions"] = allTransitions;
-}
-
 //function tfa
 DFA DFA::minimize() {
+    REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling minimize");
+
     //elke state naam wordt in deze vector gezet.
     vector <string> names;
     for (auto i: j["states"]) {
         names.push_back(i["name"]);
     }
     sort(names.begin(), names.end());
-
-
-
 
     //elke mogelijke combinatie van 2 states wordt hier gemaakt en gezet in een vector.
     vector <vector<string>> arr;
@@ -751,7 +408,6 @@ DFA DFA::minimize() {
             }
         }
     }
-
 
 
     //Hier maken wij de tabel aan zonder het te visualizeren.
@@ -865,7 +521,6 @@ DFA DFA::minimize() {
             }
         }
     }
-
 
     //alle states die nog niet gekruist zijn worden in een nieuwe vector gezet.
     vector<vector<string>> finalVector;
@@ -1137,8 +792,6 @@ DFA DFA::minimize() {
         }
     }
 
-
-
     //de dfa aan maken en meegeven als een json file.
     dfa["type"] = "DFA";
     dfa["alphabet"] = j["alphabet"];
@@ -1154,149 +807,8 @@ DFA DFA::minimize() {
 
 }
 
-void DFA::printTable() {
-    vector<string> names2;
-    vector<string> checker;
-    for(auto i : j["states"]){
-        names2.push_back(i["name"]);
-    }
-    sort(names2.begin(), names2.end());
-
-
-    //Accepting check
-    for(int i = 1; i < j["states"].size(); i++){
-        bool acc1;
-        bool acc2;
-        for(auto k : j["states"]){
-            if(k["name"] == names2[i]){
-                acc1 = k["accepting"];
-            }
-        }
-
-        int temp = 0;
-        bool stop = false;
-        while(!stop){
-            for(auto l : j["states"]){
-                if(l["name"] == names2[temp]){
-                    acc2 = l["accepting"];
-                }
-            }
-
-            if(acc1 != acc2){
-                string comb = "";
-                comb += names2[i];
-                comb += names2[temp];
-                sort(comb.begin(), comb.end());
-                checker.push_back(comb);
-            }
-
-            if(temp == i){
-                stop = true;
-            }else{
-                temp += 1;
-            }
-        }
-    }
-
-
-
-    string tup;
-    bool end = false;
-
-    //Transitie check
-    while(!end) {
-        int counter = 0;
-        for (auto i: j["alphabet"]) {
-            for (auto k: names2) {
-                for (auto l: names2) {
-                    tup = "";
-                    tup += k;
-                    tup += l;
-                    sort(tup.begin(), tup.end());
-
-                    string temp2 = "";
-
-
-                    if (k != l) {
-                        for (auto o: j["transitions"]) {
-                            if (k == o["from"] && i == o["input"]) {
-                                temp2 += o["to"];
-                            }
-                            if (l == o["from"] && i == o["input"]) {
-                                temp2 += o["to"];
-                            }
-                        }
-                        sort(temp2.begin(), temp2.end());
-
-                        int erin = 0;
-                        for(auto p : checker){
-                            if(tup == p){
-                                erin = 1;
-                            }
-                        }
-                        if(erin == 0) {
-                            for (auto p: checker) {
-                                if (temp2 == p) {
-                                    checker.push_back(tup);
-                                    counter += 1;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if(counter == 0){
-            end = true;
-        }
-    }
-
-
-
-    //print
-    for(int i = 1; i < j["states"].size();i++) {
-        cout << i << "   ";
-
-        int tempor = 0;
-        bool cat = false;
-        while (!cat) {
-            int ctr = 0;
-
-            tup = "";
-            tup += names2[i];
-            tup += names2[tempor];
-            sort(tup.begin(), tup.end());
-
-            for (auto h: checker) {
-                if (tup == h) {
-                    cout << "X" << "   ";
-                    ctr += 1;
-                    break;
-                }
-            }
-
-            if (ctr == 0) {
-                cout << "-" << "   ";
-            }
-
-            tempor += 1;
-            if(i == tempor){
-                cat = true;
-            }
-        }
-        cout << endl;
-    }
-
-    cout << "    ";
-    for(int qr = 0; qr < names2.size()-1;qr++){
-        cout << names2[qr] << "   ";
-    }
-
-    cout << endl;
-}
-
-vector<State*> DFA::sortStates(const vector<State *> &states) const {
+vector<State*> DFA::sortStates(const vector<State *> &states){
+    REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling sortState");
     vector<State*> sorted; // Sorted part
     vector<State*> unsorted = states; // Unsorted part
     // While not everything sorted
@@ -1321,6 +833,7 @@ vector<State*> DFA::sortStates(const vector<State *> &states) const {
     return sorted;
 }
 RE DFA::toRE() {
+    REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling toRE");
     string regexString;
     for (auto accState : acceptingStates) {
         // Vector to store all states
@@ -1457,4 +970,46 @@ DFA::~DFA() {
     for (auto state : states) {
         delete state;
     }
+}
+
+
+const string &DFA::getReg(){
+    REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling getReg");
+    return reg;
+}
+
+unsigned long long DFA::getStates(){
+    REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling getReg");
+    return states.size();
+}
+
+unsigned long long DFA::getAcceptingStates(){
+    REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling getReg");
+    return acceptingStates.size();
+}
+
+State *DFA::getStartState(){
+    REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling getStartState");
+    return startState;
+}
+
+unsigned long long DFA::getAlphabet(){
+    REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling getAlphabet");
+    return alphabet.size();
+}
+
+const string &DFA::getType(){
+    REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling getType");
+    return type;
+}
+
+
+DFA *DFA::get_initCheck() {
+    REQUIRE(this->properlyInitialized(), "DFA wasn't initialized when calling get_initCheck");
+    return _initCheck;
+}
+
+void DFA::set_initCheck(DFA* i) {
+    REQUIRE(this->properlyInitialized(), "DFA wasn't initialized when calling set_initCheck");
+    _initCheck = i;
 }
