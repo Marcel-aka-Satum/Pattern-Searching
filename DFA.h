@@ -67,9 +67,8 @@ public:
     DFA minimize();
 
     //function state elimination
-    RE toRE(char epsilon);
+    RE toRE();
     vector<State*> sortStates(const vector<State*>& states) const;
-    static bool ignore_eps(State* state,const std::pair<const char, vector<State*>> trans, char epsilon);
 };
 
 #endif //SUBSET_CONSTRUCTION_DFA_H

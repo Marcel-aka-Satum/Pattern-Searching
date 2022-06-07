@@ -24,7 +24,14 @@ private:
     set<vector<string>> allStates;
 public:
     //common function
+    ENFA();
+
     ENFA(const string& p);
+
+    const string &getEps() const;
+
+    int getAllStates() const;
+
     //functions for regex to enfa
     vector<string> tryEpsilon(vector<string> state1);
     bool accept(vector<string> new_state);

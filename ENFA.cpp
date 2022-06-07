@@ -279,3 +279,13 @@ void ENFA::addState(string name, bool starting, bool accepting) {
              {"starting",  starting},
              {"accepting", accepting}});
 }
+
+const string &ENFA::getEps() const {
+    return eps;
+}
+
+int ENFA::getAllStates() const {
+    return allStates.size();
+}
+
+ENFA::ENFA() {}

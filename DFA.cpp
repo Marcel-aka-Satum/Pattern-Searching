@@ -1296,22 +1296,6 @@ void DFA::printTable() {
     cout << endl;
 }
 
-bool DFA::ignore_eps(State* state,  std::pair<const char, vector<State *>> trans, char epsilon) {
-    int counter = 0;
-    for(auto y: state->transitions){
-        for(auto x: y.second){
-            if(x->name != "{}"){
-                counter++;
-            }
-        }
-    }
-    if(counter > 1){
-        return true;
-    }
-    else{
-        return false;
-    }
-}
 vector<State*> DFA::sortStates(const vector<State *> &states) const {
     vector<State*> sorted; // Sorted part
     vector<State*> unsorted = states; // Unsorted part
@@ -1336,7 +1320,7 @@ vector<State*> DFA::sortStates(const vector<State *> &states) const {
     }
     return sorted;
 }
-RE DFA::toRE(char epsilon) {
+RE DFA::toRE() {
     string regexString;
     for (auto accState : acceptingStates) {
         // Vector to store all states
@@ -1349,22 +1333,11 @@ RE DFA::toRE(char epsilon) {
                     string c;
                     c = trans.first;
                     for (auto desState: trans.second) {
-                        bool check = ignore_eps(state,trans,epsilon);
-                        if(!check) {
-                            if (desState->name != "{}") {
-                                if (desMap.find(desState) == desMap.cend())
-                                    desMap.insert(make_pair(desState, c));
-                                else
-                                    desMap[desState] = desMap[desState] + "+" + c;
-                            }
-                        }
-                        else{
-                            if(desState->name != "{}" && trans.first != epsilon){
-                                if (desMap.find(desState) == desMap.cend())
-                                    desMap.insert(make_pair(desState, c));
-                                else
-                                    desMap[desState] = desMap[desState] + "+" + c;
-                            }
+                        if (desState->name != "{}") {
+                            if (desMap.find(desState) == desMap.cend())
+                                desMap.insert(make_pair(desState, c));
+                            else
+                                desMap[desState] = desMap[desState] + "+" + c;
                         }
                     }
                 }

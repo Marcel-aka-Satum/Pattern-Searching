@@ -220,3 +220,25 @@ ENFA RE::toENFA() {
     ENFA enfa("enfa.json");
     return enfa;
 }
+
+const string &RE::getRegex() const {
+    return regex;
+}
+
+const string &RE::getEps() const {
+    return eps;
+}
+
+const json &RE::getRenfa() const {
+    return renfa;
+}
+
+int RE::getStates() const {
+    return states.size();
+}
+
+int RE::getAlph() const {
+    return alph.size();
+}
+
+RE::RE() {}

@@ -24,6 +24,18 @@ public:
         string expression;
     };
 
+    RE();
+
+    const string &getRegex() const;
+
+    const string &getEps() const;
+
+    const json &getRenfa() const;
+
+    int getStates() const;
+
+    int getAlph() const;
+
     vector<block> transitions;
 
     RE(string r, char e);
