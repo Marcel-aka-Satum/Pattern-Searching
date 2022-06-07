@@ -884,6 +884,7 @@ DFA DFA::minimize() {
 }
 
 vector<State*> DFA::sortStates(const vector<State *> &states){
+    //Deze functie sorteert de states in de juiste volgorde.
     REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling sortState");
     vector<State*> sorted; // Sorted part
     vector<State*> unsorted = states; // Unsorted part
@@ -909,6 +910,7 @@ vector<State*> DFA::sortStates(const vector<State *> &states){
     return sorted;
 }
 RE DFA::toRE() {
+    //Deze functie gaat van een dfa naar een regex aan de hand van state elimination.
     REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling toRE");
     string regexString;
     for (auto accState : acceptingStates) {
@@ -1043,6 +1045,7 @@ RE DFA::toRE() {
 }
 
 DFA::~DFA() {
+    //destructor
     for (auto state : states) {
         delete state;
     }
@@ -1050,42 +1053,50 @@ DFA::~DFA() {
 
 
 const string &DFA::getReg(){
+    //Deze getter returned een regex.
     REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling getReg");
     return reg;
 }
 
 unsigned long long DFA::getStates(){
+    //Deze getter returned het aantal states.
     REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling getReg");
     return states.size();
 }
 
 unsigned long long DFA::getAcceptingStates(){
+    //Deze getter returned het aantal accepting states.
     REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling getReg");
     return acceptingStates.size();
 }
 
 State *DFA::getStartState(){
+    //Deze getter returned de start state.
     REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling getStartState");
     return startState;
 }
 
 unsigned long long DFA::getAlphabet(){
+    //Deze getter returned het aantal alphabets.
     REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling getAlphabet");
     return alphabet.size();
 }
 
 const string &DFA::getType(){
+    //Deze getter returned de type.
     REQUIRE(this->properlyInitialized(),"DFA wasn't initialized when calling getType");
     return type;
 }
 
 
 DFA *DFA::get_initCheck() {
+    //Deze getter returned de _initCheck.
     REQUIRE(this->properlyInitialized(), "DFA wasn't initialized when calling get_initCheck");
     return _initCheck;
 }
 
 void DFA::set_initCheck(DFA* i) {
+    //Dit is een setter voor onze _initCheck.
     REQUIRE(this->properlyInitialized(), "DFA wasn't initialized when calling set_initCheck");
     _initCheck = i;
 }

@@ -1,1 +1,0 @@
-{"alphabet":["m"],"states":[{"accepting":false,"name":"{{0}}","starting":true},{"accepting":true,"name":"{{1}}","starting":false},{"accepting":false,"name":"{{}}","starting":false}],"transitions":[{"from":"{{0}}","input":"m","to":"{{1}}"},{"from":"{{1}}","input":"m","to":"{{}}"},{"from":"{{}}","input":"m","to":"{{}}"}],"type":"DFA"}

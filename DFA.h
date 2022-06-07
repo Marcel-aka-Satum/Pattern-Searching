@@ -83,26 +83,36 @@ public:
     DFA minimize();
 
     //function state elimination:
+    //Deze functie gaat van een dfa naar een regex aan de hand van state elimination.
     RE toRE();
+
+    //Deze functie sorteert de states in de juiste volgorde.
     vector<State*> sortStates(const vector<State*>& states);
 
     //getters:
-
+    //deze getter returned een regex.
     const string &getReg();
 
+    //Deze getter returned het aantal states.
     unsigned long long getStates();
 
+    //Deze getter returned het aantal accepting states.
     unsigned long long getAcceptingStates();
 
+    //Deze getter returned de start state.
     State *getStartState();
 
+    //Deze getter returned het aantal alphabets.
     unsigned long long getAlphabet();
 
+    //Deze getter returned de type.
     const string &getType();
 
+    //Deze getter returned de _initCheck.
     DFA* get_initCheck();
     //REQUIRE(this->properlyInitialized(), "DFA wasn't initialized when calling get_initCheck");
 
+    //Dit is een setter voor onze _initCheck.
     void set_initCheck(DFA* i);
     //REQUIRE(this->properlyInitialized(), "DFA wasn't initialized when calling set_initCheck");
 
