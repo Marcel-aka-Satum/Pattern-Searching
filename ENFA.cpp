@@ -171,10 +171,10 @@ DFA ENFA::toDFA() {
     dfa["transitions"].erase(dfa["transitions"].begin());
     dfa["transitions"].erase(dfa["transitions"].begin());
 
-    ofstream file("dfa.json");
+    ofstream file("dfa-output.json");
     file << dfa;
     file.close();
-    DFA dfaa("dfa.json");
+    DFA dfaa("dfa-output.json");
     return dfaa;
 }
 void ENFA::subsetConstruction(vector<string> const &state) {

@@ -228,10 +228,10 @@ ENFA RE::toENFA() {
     renfa["alphabet"].erase(renfa["alphabet"].begin());
     renfa["transitions"].erase(renfa["transitions"].begin());
     renfa["transitions"].erase(renfa["transitions"].begin());
-    ofstream file("enfa.json");
+    ofstream file("enfa-output.json");
     file << renfa;
     file.close();
-    ENFA enfa("enfa.json");
+    ENFA enfa("enfa-output.json");
     return enfa;
 }
 

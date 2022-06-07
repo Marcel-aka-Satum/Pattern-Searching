@@ -1,1 +1,0 @@
-{"alphabet":["a","b"],"eps":"e","states":[{"accepting":false,"name":"0","starting":true},{"accepting":true,"name":"3","starting":false},{"accepting":false,"name":"1","starting":false},{"accepting":false,"name":"2","starting":false}],"transitions":[{"from":"1","input":"e","to":"2"},{"from":"0","input":"a","to":"1"},{"from":"2","input":"b","to":"3"}],"type":"ENFA"}
