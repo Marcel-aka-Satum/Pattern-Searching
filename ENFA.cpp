@@ -8,13 +8,16 @@ using namespace std;
 using json = nlohmann::json;
 
 ENFA::ENFA(const string& p) {
+    __initCheck = this;
     ifstream input(p);
     input >> j;
     eps = j["eps"];
+    ENSURE(properlyInitialized(), "Constructor must end in properlyInitialized state");
 }
 
 
 void ENFA::nextNodes(vector<string>* nodes, string input){
+    REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling nextNodes");
     vector<string> new_states;
     for(auto node : *nodes){
         for(auto transition : j["transitions"]){
@@ -26,6 +29,7 @@ void ENFA::nextNodes(vector<string>* nodes, string input){
 }
 
 void ENFA::tryEps(vector<string>* nodes){
+    REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling tryEps");
     for(auto node : *nodes){
         for(auto transition : j["transitions"]){
             if(transition["from"] == node && transition["input"] == eps && count(nodes->begin(), nodes->end(), transition["to"]) == 0){
@@ -39,6 +43,7 @@ void ENFA::tryEps(vector<string>* nodes){
 
 
 bool ENFA::accepts(string input){
+    REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling accepts");
     vector<string> states = {to_string(0)};
     tryEps(&states);
     for(auto c : input){
@@ -54,48 +59,8 @@ bool ENFA::accepts(string input){
     }
     return(nrtimes==1);
 }
-
-int ENFA::transitionCount(string elem){
-    int count = 0;
-    for(auto transition : j["transitions"]){
-        if(transition["input"] == elem)
-            count++;
-    }
-    return count;
-}
-
-int ENFA::printDegree(int degree){
-    vector<int> vec(j["states"].size());
-    for(int i = 0; i < j["states"].size(); i++){
-        for(auto transition : j["transitions"]){
-            if(j["states"][i]["name"] == transition["from"] && transition["from"] != transition["to"])
-                vec[i]++;
-        }
-    }
-
-    return count(vec.begin(), vec.end(), degree);
-}
-void ENFA::printStats(){
-    cout << "no_of_states=" << j["states"].size() << endl;
-
-    cout << "no_of_transitions[" << eps << "]=" << transitionCount(eps) << endl;
-
-    vector<string> alph = j["alphabet"];
-    for(auto elem : alph){
-        cout << "no_of_transitions[" << elem << "]=" << transitionCount(elem) << endl;
-    }
-
-    int check = 0;
-    int i = 0;
-    while(check < j["states"].size()){
-        int result = printDegree(i);
-        cout << "degree[" << i << "]=" << result << endl;
-        check += result;
-        i++;
-    }
-}
-
 bool ENFA::accept(vector<string> new_state) {
+    REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling accept");
     bool accepting = false;
     for (int i = 0; i < j["states"].size(); i++) {
         if (j["states"][i]["accepting"] == true) {
@@ -107,6 +72,7 @@ bool ENFA::accept(vector<string> new_state) {
 }
 
 vector<string> ENFA::tryEpsilon(vector<string> state1){
+    REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling tryEpsilon");
     vector<string> new_state = state1;
 
     for(auto transition : j["transitions"]){
@@ -125,6 +91,7 @@ vector<string> ENFA::tryEpsilon(vector<string> state1){
 //functions for mssc
 
 bool ENFA::accept(const string &s) {
+    REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling accept");
     bool states[j["states"].size()];
     string currentState;
     // hier kijk ik wat mijn starting state is en zet ik dat state true en geef dat door aan de var currentState
@@ -169,10 +136,12 @@ bool ENFA::accept(const string &s) {
 }
 
 void ENFA::print() {
+    REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling print");
     cout << setw(4) << j << endl;
 }
 
 DFA ENFA::toDFA() {
+    REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling toDFA");
     vector<string> startState;
     dfa = {
             {"type",     "DFA"},
@@ -209,6 +178,7 @@ DFA ENFA::toDFA() {
     return dfaa;
 }
 void ENFA::subsetConstruction(vector<string> const &state) {
+    REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling subsetConstruction");
     vector<vector<string>> states;
 
     if (allStates.find(state) != allStates.end())
@@ -258,6 +228,7 @@ string ENFA::vecToString(vector<string> new_state) {
     }
 }
 vector<string> ENFA::findTransition(vector<string> state, string input) {
+    REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling findTransition");
     vector<string> new_state;
     for (int i = 0; i < j["transitions"].size(); i++) {
         if (count(state.begin(), state.end(), j["transitions"][i]["from"]) &&
@@ -268,12 +239,14 @@ vector<string> ENFA::findTransition(vector<string> state, string input) {
     return new_state;
 }
 void ENFA::addTransition(string from, string to, string input) {
+    REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling addTransition");
     dfa["transitions"].push_back(
             {{"from",  from},
              {"to",    to},
              {"input", input}});
 }
 void ENFA::addState(string name, bool starting, bool accepting) {
+    REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling addState");
     dfa["states"].push_back(
             {{"name",      name},
              {"starting",  starting},
@@ -281,11 +254,20 @@ void ENFA::addState(string name, bool starting, bool accepting) {
 }
 
 const string &ENFA::getEps() const {
+    REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling getEps");
     return eps;
 }
 
 int ENFA::getAllStates() const {
+    REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling getAllStates");
     return allStates.size();
 }
 
-ENFA::ENFA() {}
+ENFA::ENFA() {
+    ENSURE(properlyInitialized(), "Constructor must end in properlyInitialized state");
+}
+
+bool ENFA::properlyInitialized() const {
+    REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling properlyInitialized");
+    return __initCheck == this;
+}

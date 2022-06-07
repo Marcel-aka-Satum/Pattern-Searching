@@ -8,6 +8,9 @@
 #include "../gtest/include/gtest/gtest.h"
 
 class REtest : public ::testing::Test{};
+/**
+ * Test the variable
+ */
 
 TEST_F(REtest,test_variable){
     RE* re1 = new RE;
@@ -17,9 +20,7 @@ TEST_F(REtest,test_variable){
 
     ASSERT_EQ("",re1->getEps());
 
-    ASSERT_EQ(0,re1->getStates());
-
-    //ASSERT_EQ(json)
+    ASSERT_EQ(1,re1->getStates());
 }
 
 #endif //PATTERN_SEARCHING_RETEST_H

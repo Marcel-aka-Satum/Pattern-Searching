@@ -1,0 +1,10 @@
+//
+// Created by aaditya on 07.06.22.
+//
+
+#ifndef PATTERN_SEARCHING_OUTPUTTEST_H
+#define PATTERN_SEARCHING_OUTPUTTEST_H
+
+
+
+#endif //PATTERN_SEARCHING_OUTPUTTEST_H

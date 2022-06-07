@@ -11,7 +11,8 @@ using namespace std;
 using json = nlohmann::json;
 
 class RE {
-private:
+protected:
+    RE *__initCheck;
     string regex;
     string eps;
     json renfa;
@@ -41,6 +42,7 @@ public:
     RE(string r, char e);
 
     ENFA toENFA();
+
     void addTransition(int from, int to, string input);
     void sum(block* R, block* S);
     void concat(block* R, block* S);
@@ -59,6 +61,7 @@ public:
     void addState(int name, bool accepting, bool starting);
     void buildAlph();
     static bool noOperators(string const &expression);
+    bool properlyInitialized() const;
 
 };
 

@@ -15,7 +15,5 @@ TEST_F(ENFAtest,test_variable){
     ASSERT_EQ("",enfa1->getEps());
 
     ASSERT_EQ(0,enfa1->getAllStates());
-
-
 }
 #endif //PATTERN_SEARCHING_ENFATEST_H
