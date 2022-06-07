@@ -274,10 +274,10 @@ bool ENFA::properlyInitialized() const {
 
 ENFA *ENFA::get_initCheck() {
     REQUIRE(this->properlyInitialized(), "ENFA wasn't initialized when calling get_initCheck");
-    return _initCheck;
+    return __initCheck;
 }
 
 void ENFA::set_initCheck(ENFA* i) {
     REQUIRE(this->properlyInitialized(), "ENFA wasn't initialized when calling set_initCheck");
-    _initCheck = i;
+    __initCheck = i;
 }
