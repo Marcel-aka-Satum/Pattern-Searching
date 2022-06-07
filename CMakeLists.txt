@@ -11,7 +11,7 @@ link_directories(gtest/lib)
 
 set(RELEASE_SOURCE_FILES
         RE.cpp DFA.cpp ENFA.cpp NFA.cpp PatternSearching.cpp )
-set(DEBUG_SOURCE_FILES testMain.cpp ${RELEASE_SOURCE_FILES} test/REtest.h test/ENFAtest.h test/outputTest.h contract.h)
+set(DEBUG_SOURCE_FILES testMain.cpp ${RELEASE_SOURCE_FILES} test/REtest.h test/ENFAtest.h test/outputTest.h test/DFAtest.h contract.h)
 
 add_executable(PS main.cpp ${RELEASE_SOURCE_FILES} )
 

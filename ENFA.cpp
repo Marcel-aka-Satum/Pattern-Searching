@@ -264,10 +264,10 @@ int ENFA::getAllStates() const {
 }
 
 ENFA::ENFA() {
+    __initCheck = this;
     ENSURE(properlyInitialized(), "Constructor must end in properlyInitialized state");
 }
 
 bool ENFA::properlyInitialized() const {
-    REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling properlyInitialized");
     return __initCheck == this;
 }

@@ -261,6 +261,7 @@ int RE::getAlph() const {
 }
 
 RE::RE() {
+    __initCheck = this;
     ENSURE(properlyInitialized(), "Constructor must end in properlyInitialized state");
 }
 

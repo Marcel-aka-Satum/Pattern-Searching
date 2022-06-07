@@ -3,6 +3,7 @@
 //
 #include "test/REtest.h"
 #include "test/ENFAtest.h"
+#include "test/DFAtest.h"
 #include "gtest/include/gtest/gtest.h"
 int main(int argc, char **argv){
     ::testing::InitGoogleTest(&argc,argv);
