@@ -1,7 +1,7 @@
 #include "RE.h"
 #include <fstream>
 #include <set>
-
+//constructor
 RE::RE(string r, char e) {
     __initCheck = this;
     regex = r;
@@ -9,18 +9,21 @@ RE::RE(string r, char e) {
     eps = epsilon;
     ENSURE(properlyInitialized(), "Constructor must end in properlyInitialized state");
 }
+//adds state to enfa
 void RE::addState(int name, bool accepting, bool starting) {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling addState");
     renfa["states"].push_back({{"name",      to_string(name)},
                                {"starting",  starting},
                                {"accepting", accepting}});
 }
+//adds transitions to enfa
 void RE::addTransition(int from, int to, string input) {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling addTransition");
     renfa["transitions"].push_back({{"from",  to_string(from)},
                                     {"to",    to_string(to)},
                                     {"input", input}});
 }
+//for +
 void RE::sum(block *R, block *S) {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling sum");
     addTransition(R->start - 1, R->start, eps);
@@ -28,10 +31,12 @@ void RE::sum(block *R, block *S) {
     addTransition(S->end, S->end + 1, eps);
     addTransition(R->end, S->end + 1, eps);
 }
+//for(1)(2)
 void RE::concat(block *R, block *S) {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling concat");
     addTransition(R->end, S->start, eps);
 }
+//for *
 void RE::kleene(block *R) {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling kleene");
     addTransition(R->start - 1, R->start, eps);
@@ -39,6 +44,7 @@ void RE::kleene(block *R) {
     addTransition(R->end, R->end + 1, eps);
     addTransition(R->end, R->start, eps);
 }
+//removes the brackets
 string RE::removeBracket(string expression) {
     int open = 0;
     int close = 0;
@@ -57,9 +63,11 @@ string RE::removeBracket(string expression) {
         return expression.substr(1, expression.size() - 2);
     return expression;
 }
+//returns if the string has brackets
 bool RE::noBrackets(string const &expression) {
     return all_of(expression.begin(), expression.end(), [](char i) { return (i != '(' && i != ')'); });
 }
+//calculates the states
 int RE::calculateOperations(string const &expression) {
     int op = 0;
     for (auto elem : expression) {
@@ -68,6 +76,7 @@ int RE::calculateOperations(string const &expression) {
     }
     return op;
 }
+//executes the operation
 void RE::doOperation(block *R, block *S, string const &operation) {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling doOperation");
     if (operation == "*")
@@ -78,6 +87,7 @@ void RE::doOperation(block *R, block *S, string const &operation) {
         concat(R, S);
     }
 }
+//check if there are no operators
 bool RE::noOperators(string const &expression) {
     for (auto const &c : expression) {
         if (c == '(' || c == ')' || c == '+' || c == '*')
@@ -85,6 +95,7 @@ bool RE::noOperators(string const &expression) {
     }
     return true;
 }
+//finds the start and end
 void RE::findStartEnd(block *a, int *startPoint, int *endPoint) {
     int open = 0;
     int close = 0;
@@ -118,7 +129,7 @@ void RE::findStartEnd(block *a, int *startPoint, int *endPoint) {
         }
     }
 }
-
+//finds expressions
 void RE::findExpressions(int startPoint, int endPoint, string *expression1, string *expression2, string *operation,
                          block a) {
     if (startPoint == 0) {
@@ -136,7 +147,7 @@ void RE::findExpressions(int startPoint, int endPoint, string *expression1, stri
             *expression1 = removeBracket(*expression1 + *operation);
     }
 }
-
+//builds blocks
 void RE::buildBlock(block *x, block *y, block const &a, string const &expression1, string const &expression2,
                     string const &operation) {
     if (operation == "*") {
@@ -149,6 +160,7 @@ void RE::buildBlock(block *x, block *y, block const &a, string const &expression
         *y = {x->end + 1, a.end, expression2};
     }
 }
+//breaks blocks
 pair<RE::block, RE::block> RE::breakUp(block a) {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling breakUp");
     pair<RE::block, RE::block> p;
@@ -170,6 +182,7 @@ pair<RE::block, RE::block> RE::breakUp(block a) {
     p.second = y;
     return p;
 }
+//find transitions
 void RE::findTransitions(block &a) {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling findTransition");
     pair<RE::block, RE::block> p;
@@ -184,7 +197,7 @@ void RE::findTransitions(block &a) {
     findTransitions(p.first);
     findTransitions(p.second);
 }
-
+//build transitions
 void RE::buildTransitions() {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling buildTransition");
     for (auto const &elem : transitions) {
@@ -192,14 +205,14 @@ void RE::buildTransitions() {
         alph.insert(elem.expression);
     }
 }
-
+//builds states
 void RE::buildStates(int end) {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling buildStates");
     for (int i = 1; i < end; i++) {
         addState(i, false, false);
     }
 }
-
+//builds alphabet
 void RE::buildAlph() {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling buildAlph");
     for (auto a : alph) {
@@ -207,6 +220,7 @@ void RE::buildAlph() {
             renfa["alphabet"].push_back(a);
     }
 }
+//re to enfa
 ENFA RE::toENFA() {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling toENFA");
     int end = calculateOperations(regex) - 1;
@@ -234,32 +248,32 @@ ENFA RE::toENFA() {
     ENFA enfa("enfa-output.json");
     return enfa;
 }
-
+//returns the string regex
 const string &RE::getRegex() const {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling getRegex");
     return regex;
 }
-
+//retruns the eps
 const string &RE::getEps() const {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling getEps");
     return eps;
 }
-
+//returns the enfa
 const json &RE::getRenfa() const {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling getRenfa");
     return renfa;
 }
-
+//returns the states length
 int RE::getStates() const {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling getStates");
     return states.size();
 }
-
+//returns alphabet length
 int RE::getAlph() const {
     REQUIRE(this->properlyInitialized(), "Wasn't initialized when calling getAlph");
     return alph.size();
 }
-
+//constructor
 RE::RE() {
     __initCheck = this;
     ENSURE(properlyInitialized(), "Constructor must end in properlyInitialized state");
